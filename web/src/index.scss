@@ -1,0 +1,59 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+:root {
+  overflow: hidden !important;
+  color: rgba(255, 255, 255, 0.87);
+  color-scheme: light !important;
+  background-color: transparent !important;
+}
+
+body {
+  background: none !important;
+}
+
+.custom-pointers .react-colorful__saturation-pointer {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+}
+
+.custom-pointers .react-colorful__hue-pointer,
+.custom-pointers .react-colorful__alpha-pointer {
+  width: 16px;
+  border-radius: 3px;
+}
+
+.custom-layout .react-colorful {
+  padding: 16px;
+  border-radius: 6px;
+  background: #33333a;
+}
+
+.custom-layout .react-colorful__saturation {
+  margin: 15px 0;
+  border-radius: 5px;
+  border-bottom: none;
+}
+
+.custom-layout .react-colorful__hue {
+  order: -1;
+}
+
+.custom-layout .react-colorful__hue,
+.custom-layout .react-colorful__alpha {
+  height: 14px;
+  border-radius: 5px;
+}
+
+.custom-layout .react-colorful__saturation-pointer {
+  height: 20px;
+  width: 20px;
+}
+
+.custom-layout .react-colorful__hue-pointer,
+.custom-layout .react-colorful__alpha-pointer {
+  width: 20px;
+  height: 20px;
+}

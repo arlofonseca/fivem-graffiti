@@ -1,0 +1,6 @@
+---@class GraffitiDB
+---@field id number
+---@field creator_id string
+---@field coords string
+---@field dimension number
+---@field text string
