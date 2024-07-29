@@ -44,6 +44,27 @@ function db.countGraffiti(identifier)
     return result and #result or 0
 end
 
+---@param creator_id string
+---@param coords string
+---@param dimension number
+---@param text string
+---@return unknown?
+function db.saveGraffiti(creator_id, coords, dimension, text)
+    local success, result = pcall(MySQL.rawExecute.await, 'INSERT INTO graffiti (creator_id, coords, dimension, text) VALUES (?, ?, ?, ?)', { creator_id, coords, dimension, text })
+    if not success then return error(result) end
+
+    return result
+end
+
+---@param graffitiId number
+---@return unknown?
+function db.deleteGraffiti(graffitiId)
+    local success, result = pcall(MySQL.rawExecute.await, 'DELETE FROM graffiti WHERE id = ?', { graffitiId })
+    if not success then return error(result) end
+
+    return result
+end
+
 ---@param source number?
 ---@return Graffiti[]?
 function db.loadGraffiti(source)
