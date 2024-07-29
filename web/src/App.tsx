@@ -12,7 +12,7 @@ function App() {
   useNuiEvent('setVisible', setVisible);
   useExitListener(setVisible);
 
-  if (!visible) return <></>;
+  if (!visible) return null;
 
   return (
     <>
