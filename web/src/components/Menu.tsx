@@ -1,6 +1,6 @@
 import { RgbaColorPicker } from 'react-colorful';
 import { FaSprayCan } from 'react-icons/fa';
-import Input from './modal/Input';
+import Input from './ui/Input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Slider } from './ui/slider';
 
