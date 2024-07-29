@@ -52,14 +52,17 @@ local function deleteGraffiti(source, args)
     sendChatMessage(source, ('^1ERROR: ^0An error occurred while deleting graffiti %s.'):format(graffitiId))
 end
 
----@param source number
----@param graffitiId number
----@return boolean
-registerCallback('fivem-graffiti:server:isGraffitiOwner', function(source, graffitiId)
-    local identifier = GetPlayerIdentifierByType(source --[[@as string]], config.identifierType)
-    local graffiti = createdGraffiti[graffitiId]
-    return graffiti?.creator_id == identifier
-end)
+---@param source integer
+---@return number
+local function getSprayCan(source)
+    return exports.ox_inventory:GetItem(source, 'spraycan', false, true) or 0
+end
+
+---@param source integer
+---@param amount number
+local function removeSprayCan(source, amount)
+    exports.ox_inventory:RemoveItem(source, 'spraycan', amount)
+end
 
 registerCallback('fivem-graffiti:server:hasStarted', function()
     return hasStarted
@@ -80,6 +83,20 @@ RegisterNetEvent('fivem-graffiti:server:loadGraffiti', function()
     db.loadGraffiti(source)
 end)
 
+---@param graffitiId number
+RegisterNetEvent('fivem-graffiti:server:deleteGraffiti', function(graffitiId)
+    deleteGraffiti(source, { graffitiId = graffitiId })
+end)
+
+---@param source number
+---@param graffitiId number
+---@return boolean
+registerCallback('fivem-graffiti:server:isGraffitiOwner', function(source, graffitiId)
+    local identifier = GetPlayerIdentifierByType(source --[[@as string]], config.identifierType)
+    local graffiti = createdGraffiti[graffitiId]
+    return graffiti?.creator_id == identifier
+end)
+
 AddEventHandler('onResourceStart', function(resourceName)
     if resourceName ~= 'fivem-graffiti' then return end
 
@@ -94,9 +111,37 @@ AddEventHandler('onResourceStart', function(resourceName)
     end
 end)
 
----@param graffitiId number
-RegisterNetEvent('fivem-graffiti:server:deleteGraffiti', function(graffitiId)
-    deleteGraffiti(source, { graffitiId = graffitiId })
+lib.addCommand({ 'graffiti' }, {
+    help = nil,
+    params = false,
+    restricted = false,
+}, function(source)
+    if not hasStarted then return end
+
+    local src = source
+    if not src then return false end
+
+    local identifier = GetPlayerIdentifierByType(source --[[@as string]], config.identifierType)
+    local activeGraffiti = db.countGraffiti(identifier)
+    if activeGraffiti >= config.maxGraffiti then
+        return sendChatMessage(source, '^1ERROR: ^0You cannot have more than {0} graffiti tags at a time.', { config.maxGraffiti })
+    end
+
+    ---@todo
+    ---probably better to fetch and remove the item when a player actually completes the pre-creation process,
+    ---instead of removing it when they simply open the creation panel.
+    local item = getSprayCan(src)
+    if item < 1 then
+        return false, sendChatMessage(source, '^1ERROR: ^0You do not have a spray can.')
+    end
+
+    if true then
+        removeSprayCan(src, 1)
+    end
+
+    TriggerClientEvent('fivem-graffiti:client:creationPanel', source, false)
+
+    return true
 end)
 
 lib.addCommand({ 'removegraffiti', 'rg' }, {

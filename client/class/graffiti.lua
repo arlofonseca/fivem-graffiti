@@ -28,7 +28,7 @@ function Graffiti:constructor(data)
     end)
 end
 
-function Graffiti:generateGraffiti()
+function Graffiti:generateGraffitiRaycast()
     if self.disable then return end
 
     ---@todo

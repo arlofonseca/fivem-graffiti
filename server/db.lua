@@ -35,6 +35,15 @@ function db.fetchGraffitiTable()
     return result
 end
 
+---@param identifier string
+---@return number
+function db.countGraffiti(identifier)
+    local success, result = pcall(MySQL.query.await, 'SELECT * FROM graffiti WHERE creator_id = ?', { identifier })
+    if not success then error(result) return 0 end
+
+    return result and #result or 0
+end
+
 ---@param source number?
 ---@return Graffiti[]?
 function db.loadGraffiti(source)

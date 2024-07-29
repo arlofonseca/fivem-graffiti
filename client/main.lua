@@ -22,16 +22,9 @@ local function deleteGraffiti(id)
     createdGraffiti[id] = nil
 end
 
-RegisterCommand('testgraffiti', function(data)
+registerEvent('fivem-graffiti:client:creationPanel', function()
     SetNuiFocus(true, true)
     sendReactMessage('setVisible', true)
-    SendNUIMessage({ action = 'setVisible', data = data })
-end, false)
-
-RegisterNuiCallback('fivem-graffiti:nui:hideFrame', function(_, cb)
-    cb(1)
-    SetNuiFocus(false, false)
-    sendReactMessage('setVisible', false)
 end)
 
 ---@param id number
@@ -104,6 +97,12 @@ AddEventHandler('onClientResourceStop', function(resourceName)
     for k in pairs(createdGraffiti) do
         deleteGraffiti(k)
     end
+end)
+
+RegisterNuiCallback('fivem-graffiti:nui:hideFrame', function(_, cb)
+    cb(1)
+    SetNuiFocus(false, false)
+    sendReactMessage('setVisible', false)
 end)
 
 CreateThread(function()

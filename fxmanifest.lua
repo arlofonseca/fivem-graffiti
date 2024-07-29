@@ -33,6 +33,7 @@ dependencies {
     '/onesync',
     'oxmysql',
     'ox_lib',
+    'ox_inventory',
 }
 
 lua54 'yes'
