@@ -30,7 +30,7 @@ const Menu = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="w-full flex flex-col gap-1">
+            <div className="w-full flex flex-col gap-2">
               <p className="text-sm font-semibold opacity-80">Depth Correction</p>
               <Slider defaultValue={[33]} max={100} step={1} />
             </div>
