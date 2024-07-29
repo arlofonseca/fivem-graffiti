@@ -1,7 +1,9 @@
 import { useNuiEvent } from '@/hooks/useNuiEvent.ts';
-import Menu from './components/Menu';
 import { useExitListener } from './hooks/useExitListener';
 import { creationFrameState, setCreationFrameState } from './state/graffiti';
+import React from 'react';
+
+const MenuComponent = React.lazy(() => import('./components/Menu'));
 
 function App() {
   const visible = creationFrameState();
@@ -11,9 +13,12 @@ function App() {
   useExitListener(setVisible);
 
   if (!visible) return <></>;
+
   return (
     <>
-      <Menu />
+      <React.Suspense fallback={<></>}>
+        <MenuComponent />
+      </React.Suspense>
     </>
   );
 }
