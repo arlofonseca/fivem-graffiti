@@ -24,7 +24,7 @@ end
 
 registerEvent('fivem-graffiti:client:creationPanel', function()
     SetNuiFocus(true, true)
-    sendReactMessage('setVisible', true)
+    sendReactMessage('fivem-graffiti:nui:openFrame', true)
 end)
 
 ---@param id number
@@ -79,6 +79,21 @@ registerEvent('fivem-graffiti:client:deleteGraffitis', function(ids)
     end
 end)
 
+---@param graffitiIds number[]
+registerEvent('fivem-graffiti:client:nearbyGraffiti', function(graffitiIds)
+    for i = 1, #graffitiIds do
+        local id = graffitiIds[i]
+        local graffiti = createdGraffiti[id]
+        TriggerEvent('chat:addMessage', {
+            template = '^4--------- ^0Nearby Graffitis ^4---------',
+        })
+        TriggerEvent('chat:addMessage', {
+            template = '^2[ADMIN]: ^3Graffiti #{0} ^0{1}',
+            args = { id, graffiti.text }
+        })
+    end
+end)
+
 registerEvent('fivem-graffiti:client:startedCheck', function()
     if GetInvokingResource() then return end
 
@@ -96,6 +111,17 @@ AddEventHandler('onClientResourceStop', function(resourceName)
 
     for k in pairs(createdGraffiti) do
         deleteGraffiti(k)
+    end
+end)
+
+---@param data { text: string }
+---@param cb function
+RegisterNuiCallback('fivem-graffiti:nui:createGraffiti', function(data, cb)
+    cb(1)
+    if data then
+        TriggerServerEvent('fivem-graffiti:server:createGraffiti', data)
+    else
+        lib.print.info('No data provided for creating a Graffiti Tag.')
     end
 end)
 

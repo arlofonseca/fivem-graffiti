@@ -19,6 +19,67 @@ if not LoadResourceFile('fivem-graffiti', 'web/dist/index.html') then
     return
 end
 
+---@param data { text: string }
+RegisterNetEvent('fivem-graffiti:server:createGraffiti', function(data)
+    local src = source
+    local identifier = GetPlayerIdentifierByType(src --[[@as string]], config.identifierType)
+    local activeGraffiti = db.countGraffiti(identifier)
+    -- The command '/graffiti' already checks this, but keeping this just in case anything happens
+    if not activeGraffiti >= config.maxGraffiti then
+        return sendChatMessage(src, '^1ERROR: ^0You cannot have more than {0} active graffiti tags at a time.', { config.maxGraffiti })
+    end
+
+    local coords = GetEntityCoords(GetPlayerPed(src))
+    if config.maxGraffiti > 1 then
+        for _, v in pairs(createdGraffiti) do
+            local distance = #(coords - v.coords)
+            if not v.creator_id == identifier and distance < 2 then
+                sendChatMessage(src, ('^1ERROR: ^0You cannot create a new graffiti tag within %s meters of your old one.'):format(distance))
+            end
+        end
+    end
+
+    local text = data.text
+    if not text then
+        return sendChatMessage(src, '^1ERROR: ^0You must insert text for your Graffiti tag.')
+    end
+
+    local bucket = GetPlayerRoutingBucket(src --[[@as string]])
+    local coordsStr = json.encode(coords)
+    local success, result = pcall(function()
+        local rowsChanged = db.saveGraffiti(identifier, coordsStr, bucket, text)
+        if not rowsChanged or (type(rowsChanged) == 'number' and rowsChanged == 0) then
+            error('Failed to insert graffiti into the database')
+            return sendChatMessage(src, '^1ERROR: ^0Failed to create graffiti tag.')
+        end
+
+        local id = rowsChanged.insertId
+        if not id then return end
+
+        createdGraffiti[id] = {
+            id = id,
+            creator_id = identifier,
+            coords = coords,
+            dimension = bucket,
+            text = text,
+            disable = false
+        }
+
+        TriggerClientEvent('fivem-graffiti:client:createGraffiti', -1, id, coords, bucket, text)
+        sendChatMessage(src, '^4You have successfully created a Graffiti tag. Use ^0/clean ^4to remove it.')
+        lib.print.info(("[Graffiti] Created ID '%s'."):format(id))
+        lib.print.warn(src, ("**%s** ('%s') initiated the creation of a graffiti tag. **Text:** '%s', **Location:** '%s'."):format(identifier, text, coords))
+        if config.logging then
+            lib.logger(src, 'admin', ("**%s** ('%s') initiated the creation of a graffiti tag. Text: **'%s'**, Location: **'%s'**."):format(identifier, text, coords))
+        end
+    end)
+
+    if success then return end
+
+    error(('Error creating graffiti tag: %s'):format(result))
+    sendChatMessage(src, '^1ERROR: ^0An error occurred while creating the graffiti tag.')
+end)
+
 ---@param source number
 ---@param args { graffitiId: number }
 local function deleteGraffiti(source, args)
@@ -111,7 +172,7 @@ AddEventHandler('onResourceStart', function(resourceName)
     end
 end)
 
-lib.addCommand({ 'graffiti' }, {
+lib.addCommand({ 'graffiti', 'grf' }, {
     help = nil,
     params = false,
     restricted = false,
@@ -132,7 +193,7 @@ lib.addCommand({ 'graffiti' }, {
     ---instead of removing it when they simply open the creation panel.
     local item = getSprayCan(src)
     if item < 1 then
-        return false, sendChatMessage(source, '^1ERROR: ^0You do not have a spray can.')
+        return false, sendChatMessage(source, '^1ERROR: ^0You do not own a Spraycan!')
     end
 
     if true then
@@ -156,6 +217,27 @@ lib.addCommand({ 'removegraffiti', 'rg' }, {
     },
     restricted = restrictedGroup,
 }, deleteGraffiti)
+
+lib.addCommand({ 'nearbygraffitis', 'ng' }, {
+    help = nil,
+    params = false,
+    restricted = restrictedGroup
+}, function(source)
+    if not hasStarted then return end
+
+    local identifier = GetPlayerIdentifierByType(source --[[@as string]], config.identifierType)
+    local coords = GetEntityCoords(GetPlayerPed(source))
+    local ids = {}
+    for id, data in pairs(createdGraffiti) do
+        if identifier == data.creator_id and #(coords - data.coords) < 15 then
+            ids[#ids + 1] = id
+        end
+    end
+
+    if #ids == 0 then return sendChatMessage(source, '^1ERROR: ^0You are not near any active graffiti tags.') end
+
+    TriggerClientEvent('fivem-graffiti:client:nearbyGraffiti', source, ids)
+end)
 
 CreateThread(function()
     Wait(2000)
