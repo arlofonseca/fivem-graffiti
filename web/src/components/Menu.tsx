@@ -24,9 +24,9 @@ const Menu = () => {
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent className="bg-red absolute">
-                  <SelectItem value="light">Light</SelectItem>
-                  <SelectItem value="dark">Dark</SelectItem>
-                  <SelectItem value="system">System</SelectItem>
+                  <SelectItem value="light">Font 1</SelectItem>
+                  <SelectItem value="dark">Font 2</SelectItem>
+                  <SelectItem value="system">Font 3</SelectItem>
                 </SelectContent>
               </Select>
             </div>
