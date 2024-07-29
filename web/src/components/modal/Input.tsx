@@ -28,7 +28,7 @@ const Input: ({ className, defaultValue, id, onChange, style, title }: InputInte
         id={id}
         style={style}
         className={twMerge(
-          'flex w-full flex-col items-start justify-center',
+          'flex gap-1 w-full flex-col items-start justify-center',
           className,
           title ? 'h-[5.5dvh]' : 'h-[3dvh]'
         )}
