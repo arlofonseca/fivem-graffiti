@@ -24,7 +24,7 @@ end
 
 registerEvent('fivem-graffiti:client:creationPanel', function()
     SetNuiFocus(true, true)
-    sendReactMessage('setVisible', true)
+    sendReactMessage('fivem-graffiti:nui:openFrame', true)
 end)
 
 ---@param id number

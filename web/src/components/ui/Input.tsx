@@ -37,7 +37,6 @@ const Input: ({ className, defaultValue, id, onChange, style, title }: InputInte
         <input
           type="text"
           defaultValue={defaultValue}
-          placeholder="..."
           onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
             const value: string = e.currentTarget.value;
             func(value);
