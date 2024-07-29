@@ -33,8 +33,8 @@ const Menu = () => {
             label="Font"
             radius="none"
           >
-            <SelectItem key={'e'}>ee</SelectItem>
-            <SelectItem key={'ee'}>ee</SelectItem>
+            <SelectItem key={'fontOne'}>JetBrains Mono</SelectItem>
+            <SelectItem key={'fontTwo'}>Times New Roman</SelectItem>
           </Select>
 
           <Slider

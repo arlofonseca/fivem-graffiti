@@ -21,7 +21,7 @@ export const useExitListener: (visibleSetter: FrameVisibleSetter, cb?: () => voi
       if (keys.includes(e.code)) {
         setterRef.current(false);
         cb && cb();
-        fetchNui('fivem-infomarkers:nui:hideFrame');
+        fetchNui('fivem-graffiti:nui:hideFrame');
       }
     };
 

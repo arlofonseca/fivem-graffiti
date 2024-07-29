@@ -9,9 +9,16 @@ export interface InputInterface {
   title?: string;
 }
 
-const Input = ({ className, defaultValue, id, onChange, style, title }: InputInterface) => {
-  const onChaneFunc = (value: string) => {
-    if (!onChange) return console.log('[DEBUG] (Input:onChaneFunc) onChange prop is null, returning.');
+const Input: ({ className, defaultValue, id, onChange, style, title }: InputInterface) => JSX.Element = ({
+  className,
+  defaultValue,
+  id,
+  onChange,
+  style,
+  title,
+}: InputInterface) => {
+  const func: (value: string) => void = (value: string): void => {
+    if (!onChange) return console.log('Something went wrong.');
     onChange(value);
   };
 
@@ -31,9 +38,9 @@ const Input = ({ className, defaultValue, id, onChange, style, title }: InputInt
           type="text"
           defaultValue={defaultValue}
           placeholder="..."
-          onChange={(e) => {
-            const value = e.currentTarget.value;
-            onChaneFunc(value);
+          onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+            const value: string = e.currentTarget.value;
+            func(value);
           }}
           className=" h-full w-full rounded-[6px] border-[1px] border-primaryBorder !bg-[#151517] p-1 text-sm !outline-none focus:border-secondaryBorder"
         />

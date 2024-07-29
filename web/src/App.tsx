@@ -1,15 +1,13 @@
 import { useNuiEvent } from '@/hooks/useNuiEvent.ts';
-import React from 'react';
 import Menu from './components/Menu';
 import { useExitListener } from './hooks/useExitListener';
-import { isEnvBrowser } from './utils/misc';
+import { setCreationFrameState } from './state/graffiti';
 
 function App() {
-  const [visible, setVisible] = React.useState(isEnvBrowser());
-  useNuiEvent('setVisible', setVisible);
-  useExitListener(setVisible);
+  const visible = setCreationFrameState();
 
-  if (!visible) return <></>;
+  useNuiEvent('setVisible', visible);
+  useExitListener(visible);
 
   return (
     <>

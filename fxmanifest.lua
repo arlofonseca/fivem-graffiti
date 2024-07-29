@@ -20,7 +20,9 @@ server_scripts {
 ui_page 'web/dist/index.html'
 
 files {
+    'client/class/*.lua',
     'client/utils/*.lua',
+    'config/client.lua',
     'web/dist/index.html',
     'web/dist/assets/*.js',
     'web/dist/assets/*.css',

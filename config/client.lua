@@ -1,0 +1,3 @@
+return {
+    graffitiDistance = 15,
+}
