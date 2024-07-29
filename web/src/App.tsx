@@ -1,14 +1,16 @@
 import { useNuiEvent } from '@/hooks/useNuiEvent.ts';
 import Menu from './components/Menu';
 import { useExitListener } from './hooks/useExitListener';
-import { setCreationFrameState } from './state/graffiti';
+import { creationFrameState, setCreationFrameState } from './state/graffiti';
 
 function App() {
-  const visible = setCreationFrameState();
+  const visible = creationFrameState();
+  const setVisible = setCreationFrameState();
 
-  useNuiEvent('setVisible', visible);
-  useExitListener(visible);
+  useNuiEvent('setVisible', setVisible);
+  useExitListener(setVisible);
 
+  if (!visible) return <></>;
   return (
     <>
       <Menu />
