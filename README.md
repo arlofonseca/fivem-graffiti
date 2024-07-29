@@ -1,10 +1,18 @@
 # fivem-graffiti
 
-A standalone graffiti creation script.
+A standalone 3D-Graffiti system which gives the ability to tag walls and objects.
 
 ## Features
 
-###### todo
+- Supports instances and routing buckets; e.g., graffiti placed in dimension #21 won't be visible in dimension #1.
+- Customizable options such as maximum graffiti distance, logging, fonts, color, and maximum number of graffiti tags per player.
+- Graffiti persist across sessions and server restarts; e.g., graffiti is retained unless manually removed via command.
+- Graffiti is stored in your database.
+- Some fonts allow you to strikethrough a letter by using upper or lowercase.
+- Spraying new graffiti will remove your old graffiti.
+- Item requirements to spray/clean graffiti.
+- Graffiti cannot be placed in specified areas within a set radius; e.g., high-traffic or admin-defined areas.
+- A straightforward, adaptable and customizable user interface designed for creating graffiti tags, created using React and the Mantine UI library.
 
 ## Development
 
@@ -70,6 +78,7 @@ This resource requires the following to function correctly:
 
 - [oxmysql](https://github.com/overextended/oxmysql)
 - [ox_lib](https://github.com/overextended/ox_lib)
+- [ox_inventory](https://github.com/overextended/ox_inventory)
 
 ### Setup
 
