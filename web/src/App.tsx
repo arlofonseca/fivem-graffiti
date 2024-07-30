@@ -9,7 +9,7 @@ function App() {
   const visible = creationFrameState();
   const setVisible = setCreationFrameState();
 
-  useNuiEvent('setVisible', setVisible);
+  useNuiEvent('fivem-graffiti:nui:openFrame', setVisible);
   useExitListener(setVisible);
 
   if (!visible) return null;
