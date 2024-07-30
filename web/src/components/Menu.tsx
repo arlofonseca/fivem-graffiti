@@ -8,7 +8,7 @@ const Menu = () => {
   return (
     <>
       <div className="flex w-[100dvw] h-[100dvh] items-end justify-end">
-        <div className="m-4 flex h-[50dvh] w-[23dvw]  flex-col items-center justify-center gap-2 rounded-[2px] border-[1px] border-primaryBorder bg-[#333439f6]">
+        <div className="m-6 flex h-[50dvh] w-[23dvw]  flex-col items-center justify-center gap-2 rounded-[2px] border-[1px] border-primaryBorder bg-[#333439f6]">
           <div className="mt-2 flex h-[4.5dvh] w-[95%] items-center gap-2 rounded-[6px] border border-primaryBorder bg-[#1b1c20]">
             <div className="ml-3 flex h-[75%] w-[2dvw] items-center justify-center rounded-[4px] border border-primaryBorder bg-[#333439f6]">
               <FaSprayCan size={15} />
