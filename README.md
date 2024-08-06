@@ -31,7 +31,7 @@ The upcoming steps will necessitate a certain level of understanding but offer a
 Clone the repository into your resources folder:
 
 ```
-git clone https://github.com/shifu614/fivem-graffiti.git
+git clone https://github.com/arlofonseca/fivem-graffiti.git
 ```
 
 Navigate to the `fivem-graffiti/web` directory and install the dependencies for the NUI:
@@ -70,7 +70,7 @@ pnpm watch
 
 ## Installation
 
-###### If you want to build this project yourself, you can refer to the [development](https://github.com/shifu614/fivem-graffiti?tab=readme-ov-file#development) section. If you don't want to build it, you can download the release and drag and drop it in your server, but any changes made to the built resource will need to be re-built to add the changes in.
+###### If you want to build this project yourself, you can refer to the [development](https://github.com/arlofonseca/fivem-graffiti?tab=readme-ov-file#development) section. If you don't want to build it, you can download the release and drag and drop it in your server, but any changes made to the built resource will need to be re-built to add the changes in.
 
 This resource requires the following to function correctly:
 
@@ -82,7 +82,7 @@ This resource requires the following to function correctly:
 
 ### Setup
 
-1. Download the latest release build [from here](https://github.com/shifu614/fivem-graffiti/releases/latest).
+1. Download the latest release build [from here](https://github.com/arlofonseca/fivem-graffiti/releases/latest).
 2. Unpack the contents of the downloaded folder.
 3. Place the `fivem-graffiti` folder into the directory where your resources are located.
 4. Execute the queries found in `graffiti.sql` in your database.

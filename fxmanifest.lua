@@ -2,11 +2,10 @@ fx_version 'cerulean'
 game 'gta5'
 
 name 'fivem-graffiti'
-author 'shifu614'
+author 'arlofonseca'
 description '3D-Graffiti for FiveM.'
 version '0.0.1'
-repository 'https://github.com/shifu614/fivem-graffiti'
-license 'GPL v3'
+repository 'https://github.com/arlofonseca/fivem-graffiti'
 
 shared_script '@ox_lib/init.lua'
 

@@ -15,7 +15,7 @@ if GetCurrentResourceName() ~= 'fivem-graffiti' then
 end
 
 if not LoadResourceFile('fivem-graffiti', 'web/dist/index.html') then
-    error("UI has not been built, refer to the 'README.md' or download a release build.\n^3https://github.com/shifu614/fivem-graffiti/releases/latest^0")
+    error("UI has not been built, refer to the 'README.md' or download a release build.\n^3https://github.com/arlofonseca/fivem-graffiti/releases/latest^0")
     return
 end
 
