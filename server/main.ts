@@ -9,6 +9,9 @@ export interface GraffitiTag {
   coords: string;
   dimension: number;
   text: string;
+  font: number;
+  size: number;
+  hex: string;
 }
 
 const graffitiTags: Record<number, GraffitiTag> = {};
@@ -24,7 +27,10 @@ function isAdmin(source: string): boolean {
   return IsPlayerAceAllowed(source, group);
 }
 
-async function createGraffitiTag(source: number, args: { days: number; text: string }): Promise<void> {
+async function createGraffitiTag(
+  source: number,
+  args: { text: string; font: number; size: number; hex: string }
+): Promise<void> {
   // @ts-ignore
   const identifier: string = GetPlayerIdentifierByType(source, 'license2');
   const activeGraffiti: number = await db.countGraffiti(identifier);
@@ -42,10 +48,14 @@ async function createGraffitiTag(source: number, args: { days: number; text: str
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
   const coordsStr: string = JSON.stringify(coords);
   // @ts-ignore
-  const bucket: number = GetPlayerRoutingBucket(source);
+  const dimension: number = GetPlayerRoutingBucket(source);
+
+  const font: number = parseInt(args.font.toString(), 10);
+  const size: number = parseInt(args.size.toString(), 10);
+  const hex: string = args.hex;
 
   try {
-    const rowsChanged: unknown = await db.saveGraffiti(identifier, coordsStr, bucket, text);
+    const rowsChanged: unknown = await db.saveGraffiti(identifier, coordsStr, dimension, text, font, size, hex);
     if (!rowsChanged || (typeof rowsChanged === 'number' && rowsChanged === 0)) {
       console.error('Failed to insert Graffiti Tag into the database');
       return sendChatMessage(source, '^1 ERROR: ^0 Failed to create Graffiti Tag.');
@@ -58,12 +68,15 @@ async function createGraffitiTag(source: number, args: { days: number; text: str
       id: id,
       creator_id: identifier,
       coords: coordsStr,
-      dimension: bucket,
+      dimension: dimension,
       text: text,
+      font: font,
+      size: size,
+      hex: hex,
     };
 
     graffitiTags[id] = graffiti;
-    emitNet('fivem-graffiti:client:createGraffitiTag', -1, id, coords, bucket, text);
+    emitNet('fivem-graffiti:client:createGraffitiTag', -1, id, coords, dimension, text, font, size, hex);
     sendChatMessage(source, '^4 You have successfully created a Graffiti Tag. Use ^0 /cleangraffiti ^4 to remove it.');
   } catch (error) {
     console.error('Error creating Graffiti Tag:', error);
@@ -75,6 +88,7 @@ async function deleteGraffitiTag(source: number, args: { graffitiId: number }): 
   //@ts-ignore
   const identifier: string = GetPlayerIdentifierByType(source, 'license2');
   const graffitiId: number = args.graffitiId;
+
   try {
     const data: GraffitiTag = graffitiTags[graffitiId];
     if (!data) {
@@ -108,16 +122,8 @@ onClientCallback('fivem-graffiti:server:getRoutingBucket', (source: number): num
   return GetPlayerRoutingBucket(source);
 });
 
-onClientCallback('fivem-graffiti:server:getGraffitiTags', (): Record<number, GraffitiTag[]> => {
-  return graffitiTags;
-});
-
 onNet('fivem-graffiti:server:loadGraffitiTags', (): void => {
   db.loadGraffiti(source);
-});
-
-onNet('fivem-graffiti:server:deleteGraffitiTag', (graffitiId: number): void => {
-  deleteGraffitiTag(source, { graffitiId });
 });
 
 db.createGraffitiTable();

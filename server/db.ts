@@ -10,6 +10,9 @@ export async function createGraffitiTable(): Promise<void> {
             coords LONGTEXT NOT NULL,
             dimension INT DEFAULT 0,
             text LONGTEXT NOT NULL,
+            font INT DEFAULT 0,
+            size INT DEFAULT 0,
+            hex LONGTEXT NOT NULL,
             PRIMARY KEY (id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`
     );
@@ -32,15 +35,16 @@ export async function saveGraffiti(
   creator_id: string,
   coords: string,
   dimension: number,
-  text: string
+  text: string,
+  font: number,
+  size: number,
+  hex: string
 ): Promise<unknown> {
   try {
-    return await oxmysql.rawExecute('INSERT INTO graffiti (creator_id, coords, dimension, text) VALUES (?, ?, ?, ?)', [
-      creator_id,
-      coords,
-      dimension,
-      text,
-    ]);
+    return await oxmysql.rawExecute(
+      'INSERT INTO graffiti (creator_id, coords, dimension, text, font, size, hex) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [creator_id, coords, dimension, text, font, size, hex]
+    );
   } catch (error) {
     console.error('saveGraffiti:', error);
   }
@@ -78,7 +82,10 @@ export async function loadGraffiti(source?: number): Promise<GraffitiTag[] | und
         graffiti.creator_id,
         coords,
         graffiti.dimension,
-        graffiti.text
+        graffiti.text,
+        graffiti.font,
+        graffiti.size,
+        graffiti.hex
       );
     });
     console.log(`Loaded ${graffiti.length} Graffiti Tags from the database.`);

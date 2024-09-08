@@ -4,5 +4,8 @@ CREATE TABLE IF NOT EXISTS `graffiti` (
   `coords` LONGTEXT NOT NULL,
   `dimension` INT DEFAULT 0,
   `text` LONGTEXT NOT NULL,
+  `font` INT DEFAULT 0,
+  `size` INT DEFAULT 0,
+  `hex` LONGTEXT NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -9,6 +9,9 @@ interface Graffiti {
   coords: string;
   dimension: number;
   text: string;
+  font: number;
+  size: number;
+  hex: string;
   displayed: boolean;
 }
 
@@ -19,13 +22,25 @@ let playerBucket: number = 0;
 
 netEvent(
   'fivem-graffiti:client:createGraffitiTag',
-  (id: number, creator_id: string, coords: [number, number, number], dimension: number, text: string): void => {
+  (
+    id: number,
+    creator_id: string,
+    coords: [number, number, number],
+    dimension: number,
+    text: string,
+    font: number,
+    size: number,
+    hex: string
+  ): void => {
     const graffiti: Graffiti = {
       id: id,
       creator_id: creator_id,
       coords: Cfx.Vector3.fromArray(coords),
       dimension: dimension,
       text: text,
+      font: font,
+      size: size,
+      hex: hex,
       displayed: false,
     };
 
