@@ -1,7 +1,7 @@
 import * as Cfx from '@nativewrappers/client';
 import { Point, triggerServerCallback } from '@overextended/ox_lib/client';
 import * as config from '../config.json';
-import { netEvent } from './utils';
+import { netEvent, hexToRgb, getDirectionFromRotation, calculateRotationFromNormal, getRaycast } from './utils';
 
 interface Graffiti {
   id: number;
@@ -17,7 +17,9 @@ const drawGraffiti: Record<number, boolean> = {};
 const points: Record<number, Point> = {};
 let playerBucket: number = 0;
 
-netEvent('fivem-graffiti:client:createGraffitiTag', (id: number, creator_id: string, coords: [number, number, number], dimension: number, text: string): void => {
+netEvent(
+  'fivem-graffiti:client:createGraffitiTag',
+  (id: number, creator_id: string, coords: [number, number, number], dimension: number, text: string): void => {
     const graffiti: Graffiti = {
       id: id,
       creator_id: creator_id,

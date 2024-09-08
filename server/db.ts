@@ -28,9 +28,19 @@ export async function fetchGraffitiTable(): Promise<GraffitiTag[]> {
   }
 }
 
-export async function saveGraffiti(creator_id: string, coords: string, dimension: number, text: string): Promise<unknown> {
+export async function saveGraffiti(
+  creator_id: string,
+  coords: string,
+  dimension: number,
+  text: string
+): Promise<unknown> {
   try {
-    return await oxmysql.rawExecute('INSERT INTO graffiti (creator_id, coords, dimension, text) VALUES (?, ?, ?, ?)', [creator_id, coords, dimension, text]);
+    return await oxmysql.rawExecute('INSERT INTO graffiti (creator_id, coords, dimension, text) VALUES (?, ?, ?, ?)', [
+      creator_id,
+      coords,
+      dimension,
+      text,
+    ]);
   } catch (error) {
     console.error('saveGraffiti:', error);
   }
@@ -46,7 +56,10 @@ export async function deleteGraffiti(graffitiId: number): Promise<unknown> {
 
 export async function countGraffiti(identifier: string | number): Promise<number> {
   try {
-    const result: { owner: string }[] = await oxmysql.query<{ owner: string }[]>('SELECT * FROM graffiti WHERE creator_id = ?', [identifier]);
+    const result: { owner: string }[] = await oxmysql.query<{ owner: string }[]>(
+      'SELECT * FROM graffiti WHERE creator_id = ?',
+      [identifier]
+    );
     return result ? result.length : 0;
   } catch (error) {
     console.error('countGraffiti:', error);
@@ -59,7 +72,14 @@ export async function loadGraffiti(source?: number): Promise<GraffitiTag[] | und
     const graffiti: GraffitiTag[] = await fetchGraffitiTable();
     graffiti.forEach((graffiti: GraffitiTag): void => {
       const coords: any = JSON.parse(graffiti.coords);
-      emitNet('fivem-graffiti:client:createGraffitiTag', source || -1, graffiti.creator_id, coords, graffiti.dimension, graffiti.text);
+      emitNet(
+        'fivem-graffiti:client:createGraffitiTag',
+        source || -1,
+        graffiti.creator_id,
+        coords,
+        graffiti.dimension,
+        graffiti.text
+      );
     });
     console.log(`Loaded ${graffiti.length} Graffiti Tags from the database.`);
     return graffiti;

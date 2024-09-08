@@ -16,10 +16,6 @@ const graffitiTags: Record<number, GraffitiTag> = {};
 const group: string = `group.${config.ace_group}`;
 const restrictedGroup: string | undefined = config.admin_only ? group : undefined;
 
-function leadingNum(num: number): string {
-  return num < 10 ? '0' + num : num.toString();
-}
-
 function sendChatMessage(source: number, template: string, args?: any[]): void {
   emitNet('chat:addMessage', source, { template, args });
 }
@@ -34,7 +30,9 @@ async function createGraffitiTag(source: number, args: { days: number; text: str
   const activeGraffiti: number = await db.countGraffiti(identifier);
 
   if (activeGraffiti >= config.max_graffiti_tags) {
-    return sendChatMessage(source, '^1 ERROR: ^0 You cannot have more than {0} active Graffiti Tags at a time.', [config.max_graffiti_tags]);
+    return sendChatMessage(source, '^1 ERROR: ^0 You cannot have more than {0} active Graffiti Tags at a time.', [
+      config.max_graffiti_tags,
+    ]);
   }
 
   //@ts-ignore
@@ -172,7 +170,7 @@ addCommand(['cleangraffiti', 'cgrf'], deleteGraffitiTag, {
     {
       name: 'graffitiId',
       help: 'The id of the graffiti tag to clean',
-      paramType: 'number'
+      paramType: 'number',
     },
   ],
 });
