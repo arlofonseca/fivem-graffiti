@@ -47,6 +47,8 @@ netEvent(
     createdGraffiti[id] = graffiti;
     drawGraffiti[id] = false;
 
+    startSpray(coords, text, font, size, hex);
+
     const point = new Point({
       coords: coords,
       distance: config.graffiti_distance,
@@ -81,43 +83,144 @@ netEvent(
   }
 );
 
-netEvent('fivem-graffiti:client:deleteGraffitiTag', (id: number): void => {
-  if (points[id]) {
-    points[id].remove();
-    delete points[id];
-  }
+async function startSpray(coords: Cfx.Vector3, text: string, size: number, font: number, hex: string) {
+  const ptxDict = 'scr_recartheft';
+  const ptxName = 'scr_wheel_burnout';
+  const sprayPos = new Cfx.Vector3(0.07, 0.03, -0.07);
+  const sprayRot = new Cfx.Vector3(15, 45, 10);
+  const sprayObject = CreateObject(GetHashKey('ng_proc_spraycan01b'), 0, 0, 0, false, false, false);
 
-  delete createdGraffiti[id];
-  delete drawGraffiti[id];
-});
+  AttachEntityToEntity(
+    sprayObject,
+    PlayerPedId(),
+    GetPedBoneIndex(PlayerPedId(), 57005), // Bone index for the right hand
+    sprayPos.x,
+    sprayPos.y,
+    sprayPos.z,
+    sprayRot.x,
+    sprayRot.y,
+    sprayRot.z,
+    true,
+    true,
+    false,
+    true,
+    0,
+    true
+  );
 
-on('onClientResourceStart', (resourceName: string): void => {
-  if (resourceName !== 'fivem-graffiti') return;
+  RequestAnimDict('anim@amb@business@weed@weed_inspecting_lo_med_hi@');
+  while (!HasAnimDictLoaded('anim@amb@business@weed@weed_inspecting_lo_med_hi@')) {
+    await new Promise((resolve: (value: unknown) => void) => setTimeout(resolve, 100));
 
-  emitNet('fivem-graffiti:server:loadGraffitiTags');
-});
+    RequestNamedPtfxAsset(ptxDict);
+    while (!HasNamedPtfxAssetLoaded(ptxDict)) {
+      await new Promise((resolve: (value: unknown) => void) => setTimeout(resolve, 100));
+    }
 
-setInterval(async (): Promise<void> => {
-  const bucket: number | void = await triggerServerCallback('fivem-graffiti:server:getRoutingBucket', null);
-  if (!bucket) return;
+    TaskPlayAnim(
+      PlayerPedId(),
+      'anim@amb@business@weed@weed_inspecting_lo_med_hi@',
+      'weed_spraybottle_stand_spraying_01_inspector',
+      1.0,
+      1.0,
+      -1,
+      49,
+      0,
+      false,
+      false,
+      false
+    );
 
-  playerBucket = bucket;
-}, 1000);
+    // Convert hex color to RGBA
+    const rgbaColor = hexToRgb(hex);
+    let alphaValue = 0;
 
-setInterval(async (): Promise<void> => {
-  for (const id in drawGraffiti) {
-    if (drawGraffiti[id]) {
-      const graffiti = createdGraffiti[id];
-      Cfx.World.drawMarker(
-        Cfx.MarkerType.QuestionMark,
-        graffiti.coords,
-        Cfx.Vector3.create(0),
-        new Cfx.Vector3(0, 360, 0),
-        Cfx.Vector3.create(0.5),
-        new Cfx.Color(204, 230, 217, 188),
+    // Start spraying
+    let particleInterval = setInterval(() => {
+      if (alphaValue === 255) {
+        clearInterval(particleInterval);
+
+        if (DoesEntityExist(sprayObject)) {
+          DeleteObject(sprayObject);
+        }
+
+        ClearPedTasks(PlayerPedId());
+
+        // todo: draw graffiti
+        return;
+      }
+
+      const fwdVector: number[] = GetEntityForwardVector(PlayerPedId());
+      const playerCoords: number[] = GetEntityCoords(PlayerPedId(), true);
+      const ptxCoords = {
+        x: playerCoords[0] + fwdVector[0] * 0.5,
+        y: playerCoords[1] + fwdVector[1] * 0.5,
+        z: playerCoords[2] - 0.5,
+      };
+      const playerHeading: number = GetEntityHeading(PlayerPedId());
+
+      if (!rgbaColor) {
+        return null;
+      }
+
+      UseParticleFxAsset(ptxDict);
+      SetParticleFxNonLoopedColour(rgbaColor.r / 255, rgbaColor.g / 255, rgbaColor.b / 255);
+      StartNetworkedParticleFxNonLoopedAtCoord(
+        ptxName,
+        ptxCoords.x,
+        ptxCoords.y,
+        ptxCoords.z + 1.5,
+        0,
+        0,
+        playerHeading,
+        0.5,
+        false,
         false,
         true
       );
-    }
+
+      alphaValue++;
+    }, 200);
   }
-});
+
+  netEvent('fivem-graffiti:client:deleteGraffitiTag', (id: number): void => {
+    if (points[id]) {
+      points[id].remove();
+      delete points[id];
+    }
+
+    delete createdGraffiti[id];
+    delete drawGraffiti[id];
+  });
+
+  on('onClientResourceStart', (resourceName: string): void => {
+    if (resourceName !== 'fivem-graffiti') return;
+
+    emitNet('fivem-graffiti:server:loadGraffitiTags');
+  });
+
+  setInterval(async (): Promise<void> => {
+    const bucket: number | void = await triggerServerCallback('fivem-graffiti:server:getRoutingBucket', null);
+    if (!bucket) return;
+
+    playerBucket = bucket;
+  }, 1000);
+
+  setInterval(async (): Promise<void> => {
+    for (const id in drawGraffiti) {
+      if (drawGraffiti[id]) {
+        const graffiti = createdGraffiti[id];
+        Cfx.World.drawMarker(
+          Cfx.MarkerType.QuestionMark,
+          graffiti.coords,
+          Cfx.Vector3.create(0),
+          new Cfx.Vector3(0, 360, 0),
+          Cfx.Vector3.create(0.5),
+          new Cfx.Color(204, 230, 217, 188),
+          false,
+          true
+        );
+      }
+    }
+  });
+}
