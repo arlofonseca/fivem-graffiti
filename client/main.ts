@@ -1,5 +1,5 @@
 import * as Cfx from '@nativewrappers/client';
-import { Point, triggerServerCallback } from '@overextended/ox_lib/client';
+import lib, { cache, Point, triggerServerCallback } from '@overextended/ox_lib/client';
 import * as config from '../config.json';
 import { netEvent, hexToRgb, getDirectionFromRotation, calculateRotationFromNormal, getRaycast } from './utils';
 
@@ -88,12 +88,12 @@ async function startSpray(coords: Cfx.Vector3, text: string, size: number, font:
   const ptxName = 'scr_wheel_burnout';
   const sprayPos = new Cfx.Vector3(0.07, 0.03, -0.07);
   const sprayRot = new Cfx.Vector3(15, 45, 10);
-  const sprayObject = CreateObject(GetHashKey('ng_proc_spraycan01b'), 0, 0, 0, false, false, false);
+  const sprayObject: number = CreateObject(GetHashKey('ng_proc_spraycan01b'), 0, 0, 0, false, false, false);
 
   AttachEntityToEntity(
     sprayObject,
-    PlayerPedId(),
-    GetPedBoneIndex(PlayerPedId(), 57005), // Bone index for the right hand
+    cache.ped,
+    GetPedBoneIndex(cache.ped, 57005), // Bone index for the right hand
     sprayPos.x,
     sprayPos.y,
     sprayPos.z,
@@ -108,17 +108,17 @@ async function startSpray(coords: Cfx.Vector3, text: string, size: number, font:
     true
   );
 
-  RequestAnimDict('anim@amb@business@weed@weed_inspecting_lo_med_hi@');
+  lib.requestAnimDict('anim@amb@business@weed@weed_inspecting_lo_med_hi@');
   while (!HasAnimDictLoaded('anim@amb@business@weed@weed_inspecting_lo_med_hi@')) {
     await new Promise((resolve: (value: unknown) => void) => setTimeout(resolve, 100));
 
-    RequestNamedPtfxAsset(ptxDict);
+    lib.requestNamedPtfxAsset(ptxDict);
     while (!HasNamedPtfxAssetLoaded(ptxDict)) {
       await new Promise((resolve: (value: unknown) => void) => setTimeout(resolve, 100));
     }
 
     TaskPlayAnim(
-      PlayerPedId(),
+      cache.ped,
       'anim@amb@business@weed@weed_inspecting_lo_med_hi@',
       'weed_spraybottle_stand_spraying_01_inspector',
       1.0,
@@ -132,11 +132,15 @@ async function startSpray(coords: Cfx.Vector3, text: string, size: number, font:
     );
 
     // Convert hex color to RGBA
-    const rgbaColor = hexToRgb(hex);
-    let alphaValue = 0;
+    const rgbaColor: {
+      r: number;
+      g: number;
+      b: number;
+  } | null = hexToRgb(hex);
+    let alphaValue: number = 0;
 
     // Start spraying
-    let particleInterval = setInterval(() => {
+    let particleInterval = setInterval((): null | undefined => {
       if (alphaValue === 255) {
         clearInterval(particleInterval);
 
@@ -144,20 +148,20 @@ async function startSpray(coords: Cfx.Vector3, text: string, size: number, font:
           DeleteObject(sprayObject);
         }
 
-        ClearPedTasks(PlayerPedId());
+        ClearPedTasks(cache.ped);
 
         // todo: draw graffiti
         return;
       }
 
-      const fwdVector: number[] = GetEntityForwardVector(PlayerPedId());
-      const playerCoords: number[] = GetEntityCoords(PlayerPedId(), true);
+      const fwdVector: number[] = GetEntityForwardVector(cache.ped);
+      const playerCoords: number[] = GetEntityCoords(cache.ped, true);
       const ptxCoords = {
         x: playerCoords[0] + fwdVector[0] * 0.5,
         y: playerCoords[1] + fwdVector[1] * 0.5,
         z: playerCoords[2] - 0.5,
       };
-      const playerHeading: number = GetEntityHeading(PlayerPedId());
+      const playerHeading: number = GetEntityHeading(cache.ped);
 
       if (!rgbaColor) {
         return null;
@@ -200,10 +204,10 @@ async function startSpray(coords: Cfx.Vector3, text: string, size: number, font:
   });
 
   setInterval(async (): Promise<void> => {
-    const bucket: number | void = await triggerServerCallback('fivem-graffiti:server:getRoutingBucket', null);
-    if (!bucket) return;
+    const dimension: number | void = await triggerServerCallback('fivem-graffiti:server:getRoutingBucket', null);
+    if (!dimension) return;
 
-    playerBucket = bucket;
+    playerBucket = dimension;
   }, 1000);
 
   setInterval(async (): Promise<void> => {
