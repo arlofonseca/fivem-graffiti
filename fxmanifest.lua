@@ -4,35 +4,27 @@ game 'gta5'
 name 'fivem-graffiti'
 author 'arlofonseca'
 description '3D-Graffiti for FiveM.'
-version '0.0.1'
+version '0.0.2'
 repository 'https://github.com/arlofonseca/fivem-graffiti'
+license 'MIT'
 
-shared_script '@ox_lib/init.lua'
-
-client_script 'client/main.lua'
-
-server_scripts {
-    '@oxmysql/lib/MySQL.lua',
-    'server/main.lua',
+client_scripts {
+	'dist/client/**/*',
 }
 
-ui_page 'web/dist/index.html'
+server_scripts {
+	'dist/server/**/*',
+}
 
 files {
-    'client/class/*.lua',
-    'client/utils/*.lua',
-    'config/client.lua',
-    'web/dist/index.html',
-    'web/dist/assets/*.js',
-    'web/dist/assets/*.css',
+	'config.json',
 }
 
 dependencies {
-    '/server:7290',
-    '/onesync',
-    'oxmysql',
-    'ox_lib',
-    'ox_inventory',
+	'/server:7290',
+	'/onesync',
+	'oxmysql',
+	'ox_lib',
 }
 
 lua54 'yes'

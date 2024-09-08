@@ -1,3 +1,0 @@
-return {
-    graffitiDistance = 15,
-}

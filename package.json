@@ -1,0 +1,35 @@
+{
+  "name": "fivem-graffiti",
+  "author": "arlofonseca",
+  "description": "3D-Graffiti for FiveM.",
+  "version": "0.0.2",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "node build.prod.js",
+    "watch": "node build.dev.js",
+    "format": "prettier --write ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arlofonseca/fivem-graffiti.git"
+  },
+  "bugs": "https://github.com/arlofonseca/fivem-graffiti/issues",
+  "devDependencies": {
+    "@citizenfx/client": "latest",
+    "@citizenfx/server": "latest",
+    "@types/node": "^20.12.11",
+    "esbuild": "^0.21.4",
+    "node-fetch": "^3.3.2",
+    "prettier": "^3.2.5"
+  },
+  "dependencies": {
+    "@nativewrappers/client": "latest",
+    "@nativewrappers/fivem-server": "latest",
+    "@overextended/ox_lib": "latest",
+    "@overextended/oxmysql": "latest"
+  },
+  "engines": {
+    "node": ">=16.9.1"
+  }
+}

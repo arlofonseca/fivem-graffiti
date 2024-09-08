@@ -1,0 +1,6 @@
+{
+  "max_graffiti_tags": 1,
+  "graffiti_distance": 15,
+  "admin_only": true,
+  "ace_group": "admin"
+}

@@ -8,86 +8,34 @@ A standalone 3D-Graffiti system which gives the ability to tag walls and objects
 - Customizable options such as maximum graffiti distance, logging, fonts, color, and maximum number of graffiti tags per player.
 - Graffiti persist across sessions and server restarts; e.g., graffiti is retained unless manually removed via command.
 - Graffiti is stored in your database.
+- Draws graffiti tags and retrieves local players using [nativewrappers](https://github.com/nativewrappers), rather than using common methods.
 - Some fonts allow you to strikethrough a letter by using upper or lowercase.
 - Spraying new graffiti will remove your old graffiti.
 - Item requirements to spray/clean graffiti.
 - Graffiti cannot be placed in specified areas within a set radius; e.g., high-traffic or admin-defined areas.
-- A straightforward, adaptable and customizable user interface designed for creating graffiti tags, created using React and the Mantine UI library.
-
-## Development
-
-The upcoming steps will necessitate a certain level of understanding but offer access to the most recent and innovative features.
-
-*It's important to note there is always a chance of changes being pushed that could potentially break functionality; in such cases, please refer to the latest release build.*
-
-### Dependencies
-
-- [Git](https://git-scm.com/)
-- [Node](https://nodejs.org/en/) (LTS)
-- [pnpm](https://pnpm.io)
-
-### Setup
-
-Clone the repository into your resources folder:
-
-```
-git clone https://github.com/arlofonseca/fivem-graffiti.git
-```
-
-Navigate to the `fivem-graffiti/web` directory and install the dependencies for the NUI:
-
-```
-cd web
-```
-
-```
-pnpm i
-```
-
-### Editing NUI
-
-Start development in a browser:
-
-```
-pnpm dev
-```
-
-### Building NUI
-
-To build the NUI, execute the following command within the `fivem-graffiti/web` directory:
-
-```
-pnpm build
-```
-
-### Watching Files
-
-If you prefer not to rebuild continuously, you can enable file watching, which will automatically write to the disk:
-
-```
-pnpm watch
-```
+- Users can clean their own graffiti tags, while administrators have the ability to manage any through a menu handled via the ox_lib [interface](https://overextended.dev/ox_lib/Modules/Interface/Client/context) module or through commands.
 
 ## Installation
 
-###### If you want to build this project yourself, you can refer to the [development](https://github.com/arlofonseca/fivem-graffiti?tab=readme-ov-file#development) section. If you don't want to build it, you can download the release and drag and drop it in your server, but any changes made to the built resource will need to be re-built to add the changes in.
-
-This resource requires the following to function correctly:
+##### _If you download the source code via the green `Code` button, you'll need to build the resource. Information on how to do this is provided below. If you prefer not to build it, you can download latest release and drag and drop it into your server. However, any changes made to the built resource will need to be re-built to apply the changes._
 
 ### Dependencies
 
 - [oxmysql](https://github.com/overextended/oxmysql)
 - [ox_lib](https://github.com/overextended/ox_lib)
-- [ox_inventory](https://github.com/overextended/ox_inventory)
 
-### Setup
+### Building this resource
 
-1. Download the latest release build [from here](https://github.com/arlofonseca/fivem-graffiti/releases/latest).
-2. Unpack the contents of the downloaded folder.
-3. Place the `fivem-graffiti` folder into the directory where your resources are located.
-4. Execute the queries found in `graffiti.sql` in your database.
-5. Add `start fivem-graffiti` to the location where your resources are initialized.
-6. Be sure to adjust the files found in the `config` directory to fit your needs.
+1. Download and install the LTS version of Node.js.
+2. Open a command-line terminal (e.g., Terminal, Command Prompt).
+3. Enter `node --version` to verify the installation.
+4. Run `npm install -g pnpm` to globally install the package.
+5. Download or clone the repository with `git clone https://github.com/arlofonseca/fivem-graffiti`.
+6. Execute the queries found in `graffiti.sql` in your database.
+7. Install all dependencies with `pnpm i`.
+8. Build the resource with `pnpm build`.
+
+Use `pnpm watch` to rebuild whenever a file is modified.
 
 ## Usage
 
@@ -97,7 +45,7 @@ This resource requires the following to function correctly:
 
 - Create graffiti at any location. This command allows you to place a piece of graffiti at a specified position, enabling you to mark and decorate the world.
 
-#### `/cleangraffiti` _(alias: `/cg`)_
+#### `/cleangraffiti` _(alias: `/cgrf`)_
 
 - Clean and remove the nearest graffiti. Use this command to erase the closest piece of graffiti.
 
