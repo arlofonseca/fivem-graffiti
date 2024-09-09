@@ -7,8 +7,7 @@
   "type": "module",
   "scripts": {
     "build": "node build.prod.js",
-    "watch": "node build.dev.js",
-    "format": "prettier --write ."
+    "watch": "node build.dev.js"
   },
   "repository": {
     "type": "git",
