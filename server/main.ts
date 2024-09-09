@@ -19,7 +19,7 @@ const graffitiTags: Record<number, GraffitiTag> = {};
 const group: string = `group.${config.ace_group}`;
 const restrictedGroup: string | undefined = config.admin_only ? group : undefined;
 
-function sendChatMessage(source: number, template: string, args?: any[]): void {
+function sendChatMessage(source: number, template: string, args?: any[]) {
   emitNet('chat:addMessage', source, { template, args });
 }
 
@@ -27,13 +27,18 @@ function isAdmin(source: string): boolean {
   return IsPlayerAceAllowed(source, group);
 }
 
-async function createGraffitiTag(source: number, args: { text: string; font: number; size: number; hex: string }): Promise<void> {
+async function createGraffitiTag(
+  source: number,
+  args: { text: string; font: number; size: number; hex: string }
+): Promise<void> {
   // @ts-ignore
   const identifier: string = GetPlayerIdentifierByType(source, 'license2');
   const activeGraffiti: number = await db.countGraffiti(identifier);
 
   if (activeGraffiti >= config.max_graffiti_tags) {
-    return sendChatMessage(source, '^1 ERROR: ^0 You cannot have more than {0} active Graffiti Tags at a time.', [config.max_graffiti_tags]);
+    return sendChatMessage(source, '^1 ERROR: ^0 You cannot have more than {0} active Graffiti Tags at a time.', [
+      config.max_graffiti_tags,
+    ]);
   }
 
   //@ts-ignore
@@ -117,7 +122,7 @@ onClientCallback('fivem-graffiti:server:getRoutingBucket', (source: number): num
   return GetPlayerRoutingBucket(source);
 });
 
-onNet('fivem-graffiti:server:loadGraffitiTags', (): void => {
+onNet('fivem-graffiti:server:loadGraffitiTags', () => {
   db.loadGraffiti(source);
 });
 

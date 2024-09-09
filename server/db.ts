@@ -74,7 +74,7 @@ export async function countGraffiti(identifier: string | number): Promise<number
 export async function loadGraffiti(source?: number): Promise<GraffitiTag[] | undefined> {
   try {
     const graffiti: GraffitiTag[] = await fetchGraffitiTable();
-    graffiti.forEach((graffiti: GraffitiTag): void => {
+    graffiti.forEach((graffiti: GraffitiTag) => {
       const coords: any = JSON.parse(graffiti.coords);
       emitNet(
         'fivem-graffiti:client:createGraffitiTag',

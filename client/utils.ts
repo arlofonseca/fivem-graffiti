@@ -1,5 +1,5 @@
-export function netEvent<T extends any[]>(event: string, fn: (...args: T) => void): void {
-  onNet(event, (...args: T): void => {
+export function netEvent<T extends any[]>(event: string, fn: (...args: T) => void) {
+  onNet(event, (...args: T) => {
     if (!source || (source as any) == '') return;
 
     fn(...args);
