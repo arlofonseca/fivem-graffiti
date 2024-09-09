@@ -27,6 +27,20 @@ function isAdmin(source: string): boolean {
   return IsPlayerAceAllowed(source, group);
 }
 
+function getHex(source: number, hexColor: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    emitNet('fivem-graffiti:client:getHex', source, hexColor);
+
+    onNet('fivem-graffiti:server:returnHex', (returnedHex: string) => {
+      if (returnedHex) {
+        resolve(returnedHex);
+      } else {
+        reject('Failed to get hex color from client.');
+      }
+    });
+  });
+}
+
 async function createGraffitiTag(source: number, args: { text: string; font: number; size: number; hex: string }): Promise<void> {
   // @ts-ignore
   const identifier: string = GetPlayerIdentifierByType(source, 'license2');
@@ -38,18 +52,20 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
 
   //@ts-ignore
   const text = `${args.text} ${args.filter((item: any): boolean => item !== null).join(' ')}`;
-
   // @ts-ignore
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
   const coordsStr: string = JSON.stringify(coords);
   // @ts-ignore
   const dimension: number = GetPlayerRoutingBucket(source);
-
   const font: number = parseInt(args.font.toString(), 10);
   const size: number = parseInt(args.size.toString(), 10);
-  const hex: string = args.hex;
 
   try {
+    const hex = await getHex(source, args.hex);
+    if (!hex) {
+      return sendChatMessage(source, '^1 ERROR: ^0 Invalid hex color.');
+    }
+
     const rowsChanged: unknown = await db.saveGraffiti(identifier, coordsStr, dimension, text, font, size, hex);
     if (!rowsChanged || (typeof rowsChanged === 'number' && rowsChanged === 0)) {
       console.error('Failed to insert Graffiti Tag into the database');

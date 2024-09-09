@@ -18,7 +18,7 @@ interface Graffiti {
 const createdGraffiti: Record<number, Graffiti> = {};
 const drawGraffiti: Record<number, boolean> = {};
 const points: Record<number, Point> = {};
-let playerBucket = 0;
+let playerBucket: number = 0;
 
 netEvent('fivem-graffiti:client:createGraffitiTag', (id: number, creator_id: string, coords: [number, number, number], dimension: number, text: string, font: number, size: number, hex: string) => {
   const graffiti: Graffiti = {
@@ -69,12 +69,22 @@ netEvent('fivem-graffiti:client:createGraffitiTag', (id: number, creator_id: str
   });
 });
 
+netEvent('fivem-graffiti:client:deleteGraffitiTag', (id: number) => {
+  if (points[id]) {
+    points[id].remove();
+    delete points[id];
+  }
+  delete createdGraffiti[id];
+  delete drawGraffiti[id];
+});
+
 async function startSpray(coords: Cfx.Vector3, text: string, size: number, font: number, hex: string) {
   const ptxDict = 'scr_recartheft';
   const ptxName = 'scr_wheel_burnout';
   const obj = sprayObject();
 
-  await requestAssets(ptxDict);
+  await lib.requestAnimDict('anim@amb@business@weed@weed_inspecting_lo_med_hi@');
+  await lib.requestNamedPtfxAsset(ptxDict);
 
   TaskPlayAnim(cache.ped, 'anim@amb@business@weed@weed_inspecting_lo_med_hi@', 'weed_spraybottle_stand_spraying_01_inspector', 1.0, 1.0, -1, 49, 0, false, false, false);
 
@@ -104,11 +114,6 @@ function sprayObject() {
   return obj;
 }
 
-async function requestAssets(ptxDict: string) {
-  await lib.requestAnimDict('anim@amb@business@weed@weed_inspecting_lo_med_hi@');
-  await lib.requestNamedPtfxAsset(ptxDict);
-}
-
 function sprayObjectCleanup(sprayObject: number) {
   if (DoesEntityExist(sprayObject)) {
     DeleteObject(sprayObject);
@@ -127,13 +132,9 @@ function sprayParticles(ptxDict: string, ptxName: string, rgbaColor: { r: number
   StartNetworkedParticleFxNonLoopedAtCoord(ptxName, ptxCoords.x, ptxCoords.y, ptxCoords.z + 1.5, 0, 0, plyHeading, 0.5, false, false, true);
 }
 
-netEvent('fivem-graffiti:client:deleteGraffitiTag', (id: number) => {
-  if (points[id]) {
-    points[id].remove();
-    delete points[id];
-  }
-  delete createdGraffiti[id];
-  delete drawGraffiti[id];
+onNet('fivem-graffiti:client:getHex', (hexColor: string) => {
+  const processedHex = hexColor;
+  emitNet('fivem-graffiti:server:returnHex', processedHex);
 });
 
 on('onClientResourceStart', (resourceName: string) => {
@@ -153,16 +154,7 @@ setInterval(async () => {
   for (const id in drawGraffiti) {
     if (drawGraffiti[id]) {
       const graffiti = createdGraffiti[id];
-      Cfx.World.drawMarker(
-        Cfx.MarkerType.QuestionMark,
-        graffiti.coords,
-        Cfx.Vector3.create(0),
-        new Cfx.Vector3(0, 360, 0),
-        Cfx.Vector3.create(0.5),
-        new Cfx.Color(204, 230, 217, 188),
-        false,
-        true
-      );
+      // todo
     }
   }
 });
