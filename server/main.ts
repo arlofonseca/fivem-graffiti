@@ -27,13 +27,18 @@ function isAdmin(source: string): boolean {
   return IsPlayerAceAllowed(source, group);
 }
 
-async function createGraffitiTag(source: number, args: { text: string; font: number; size: number; hex: string }): Promise<void> {
+async function createGraffitiTag(
+  source: number,
+  args: { text: string; font: number; size: number; hex: string }
+): Promise<void> {
   // @ts-ignore
   const identifier: string = GetPlayerIdentifierByType(source, 'license2');
   const activeGraffiti: number = await db.countGraffiti(identifier);
 
   if (activeGraffiti >= config.max_graffiti_tags) {
-    return sendChatMessage(source, '^1 ERROR: ^0 You cannot have more than {0} active Graffiti Tags at a time.', [config.max_graffiti_tags]);
+    return sendChatMessage(source, '^1 ERROR: ^0 You cannot have more than {0} active Graffiti Tags at a time.', [
+      config.max_graffiti_tags,
+    ]);
   }
 
   //@ts-ignore
