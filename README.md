@@ -20,6 +20,7 @@ A standalone 3D-Graffiti system which gives the ability to tag walls and objects
 
 - [oxmysql](https://github.com/overextended/oxmysql)
 - [ox_lib](https://github.com/overextended/ox_lib)
+- [ox_inventory](https://github.com/overextended/ox_inventory)
 
 ### Building this resource
 

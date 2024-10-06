@@ -58,19 +58,28 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
     return sendChatMessage(source, '^#d73232 ERROR: ^#ffffffYou cannot have more than {0} active Graffiti Tags at a time.', [config.max_graffiti_tags]);
   }
 
-  // @ts-ignore
-  const text = `${args.text} ${args.filter((item: any): boolean => item !== null).join(' ')}`;
-  // @ts-ignore
-  const coords: number[] = GetEntityCoords(GetPlayerPed(source));
-  const coordsStr: string = JSON.stringify(coords);
-  // @ts-ignore
-  const dimension: number = GetPlayerRoutingBucket(source);
-  const font: number = parseInt(args.font.toString(), 10);
-  const size: number = parseInt(args.size.toString(), 10);
-  const hex: string = await getHex(source, args.hex);
-  const createdDate = new Date();
+  const spraycan: number = exports.ox_inventory.GetItemCount(source, 'spraycan');
+  if (spraycan <= 0) {
+    return sendChatMessage(source, '^#d73232 ERROR: ^#ffffffYou need a spray can to create graffiti.');
+  }
 
   try {
+    if (!exports.ox_inventory.RemoveItem(source, 'spraycan', 1)) {
+      return sendChatMessage(source, '^#d73232ERROR: ^#ffffffFailed to remove spray can from inventory.');
+    }
+
+    // @ts-ignore
+    const text = `${args.text} ${args.filter((item: any): boolean => item !== null).join(' ')}`;
+    // @ts-ignore
+    const coords: number[] = GetEntityCoords(GetPlayerPed(source));
+    const coordsStr: string = JSON.stringify(coords);
+    // @ts-ignore
+    const dimension: number = GetPlayerRoutingBucket(source);
+    const font: number = parseInt(args.font.toString(), 10);
+    const size: number = parseInt(args.size.toString(), 10);
+    const hex: string = await getHex(source, args.hex);
+    const createdDate = new Date();
+
     const rowsChanged: unknown = await db.saveGraffiti(identifier, coordsStr, dimension, text, font, size, hex);
     if (!rowsChanged || (typeof rowsChanged === 'number' && rowsChanged === 0)) {
       console.error('Failed to insert Graffiti Tag into the database');
@@ -116,6 +125,14 @@ async function deleteGraffitiTag(source: number, args: { graffitiId: number }): 
     // @ts-ignore
     if (data.creator_id !== identifier && !isAdmin(source)) {
       return sendChatMessage(source, '^#d73232ERROR: ^#ffffffYou cannot delete a Graffiti Tag that you did not create.');
+    }
+
+    // @ts-ignore
+    if (!isAdmin(source)) {
+      const rag: number = exports.ox_inventory.GetItemCount(source, 'rag');
+      if (rag <= 0) {
+        return sendChatMessage(source, '^#d73232 ERROR: ^#ffffffYou need a rag to clean graffiti.');
+      }
     }
 
     const rowsChanged: unknown = await db.deleteGraffiti(graffitiId);
