@@ -41,6 +41,13 @@ function getHex(source: number, hexColor: string): Promise<string> {
   });
 }
 
+function getDistance(one: number[], two: number[]): number {
+  const x = one[0] - two[0];
+  const y = one[1] - two[1];
+  const z = one[2] - two[2];
+  return Math.sqrt(x * x + y * y + z * z);
+}
+
 async function createGraffitiTag(source: number, args: { text: string; font: number; size: number; hex: string }): Promise<void> {
   // @ts-ignore
   const identifier: string = GetPlayerIdentifierByType(source, 'license2');
@@ -128,6 +135,46 @@ async function deleteGraffitiTag(source: number, args: { graffitiId: number }): 
   }
 }
 
+async function massRemoveGraffiti(source: number, args: { radius: number; includeAdmin: number }): Promise<void> {
+  // @ts-ignore
+  const identifier: string = GetPlayerIdentifierByType(source, 'license2');
+  const radius: number = args.radius;
+  const includeAdmin: boolean = args.includeAdmin === 1;
+
+  // @ts-ignore
+  const playerCoords: number[] = GetEntityCoords(GetPlayerPed(source));
+
+  const remove: GraffitiTag[] = [];
+
+  for (const id in graffitiTags) {
+    const graffiti = graffitiTags[id];
+    const graffitiCoords: number[] = JSON.parse(graffiti.coords);
+
+    const distance = getDistance(playerCoords, graffitiCoords);
+    if (distance <= radius && (includeAdmin || graffiti.creator_id === identifier)) {
+      remove.push(graffiti);
+    }
+  }
+
+  if (remove.length === 0) {
+    return sendChatMessage(source, '^#d73232ERROR: ^#ffffffNo graffiti found within the specified radius.');
+  }
+
+  for (const graffiti of remove) {
+    try {
+      const rowsChanged: unknown = await db.deleteGraffiti(graffiti.id);
+      if (rowsChanged && (typeof rowsChanged === 'number' && rowsChanged > 0)) {
+        delete graffitiTags[graffiti.id];
+        emitNet('fivem-graffiti:client:deleteGraffitiTag', -1, graffiti.id);
+      }
+    } catch (error) {
+      console.error(`Failed to remove graffiti tag with ID ${graffiti.id}:`, error);
+    }
+  }
+
+  sendChatMessage(source, `^#5e81acSuccessfully removed ${remove.length} graffiti tags within ${radius} units.`);
+}
+
 onClientCallback('fivem-graffiti:server:getRoutingBucket', (source: number): number => {
   // @ts-ignore
   return GetPlayerRoutingBucket(source);
@@ -190,4 +237,22 @@ addCommand(['cleangraffiti', 'cgrf'], deleteGraffitiTag, {
       paramType: 'number',
     },
   ],
+});
+
+addCommand(['massremovegraffiti', 'mrg'], massRemoveGraffiti, {
+  params: [
+    {
+      name: 'radius',
+      help: 'The radius within which to remove graffiti',
+      paramType: 'number',
+      optional: false,
+    },
+    {
+      name: 'includeAdmin',
+      help: 'Set to 1 to include graffiti created by admins',
+      paramType: 'number',
+      optional: true,
+    },
+  ],
+  restricted: restrictedGroup,
 });

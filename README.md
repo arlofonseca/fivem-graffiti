@@ -54,7 +54,7 @@ Use `pnpm watch` to rebuild whenever a file is modified.
 
 - Remove graffiti from the database and the world using its unique identifier. This command allows you to permanently delete a specific piece of graffiti by referencing its unique identifier, ensuring it is removed from both the game world and the database.
 
-#### [ADMIN] `/massremovegraffiti [radius]` _(alias: `/mrg`)_
+#### [ADMIN] `/massremovegraffiti [radius] [include admins 0/1]` _(alias: `/mrg`)_
 
 - Mass remove graffiti from the database and the world within a specified distance. This powerful command enables the removal of multiple graffiti pieces within a certain range. If the second optional parameter is set to `1`, it will also delete graffiti created by admins.
 
