@@ -95,7 +95,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
 
     graffitiTags[id] = graffiti;
     emitNet('fivem-graffiti:client:createGraffitiTag', -1, id, coords, dimension, text, font, size, hex);
-    sendChatMessage(source, '^#5e81acYou have successfully created a Graffiti Tag. Use ^#ffffff/cleangraffiti ^#5e81acto remove it.');
+    sendChatMessage(source, '^#5e81acYou have successfully created a Graffiti Tag. Use ^#ffffff/cleangraffiti ^#5e81acto remove it');
   } catch (error) {
     console.error('Error creating Graffiti Tag:', error);
     sendChatMessage(source, '^#d73232ERROR: ^#ffffffAn error occurred while creating the Graffiti Tag.');
@@ -136,28 +136,31 @@ async function deleteGraffitiTag(source: number, args: { graffitiId: number }): 
 }
 
 async function massRemoveGraffiti(source: number, args: { radius: number; includeAdmin: number }): Promise<void> {
-  // @ts-ignore
-  const identifier: string = GetPlayerIdentifierByType(source, 'license2');
   const radius: number = args.radius;
   const includeAdmin: boolean = args.includeAdmin === 1;
 
   // @ts-ignore
-  const playerCoords: number[] = GetEntityCoords(GetPlayerPed(source));
-
+  const identifier: string = GetPlayerIdentifierByType(source, 'license2');
+  // @ts-ignore
+  const coords: number[] = GetEntityCoords(GetPlayerPed(source));
+  // @ts-ignore
+  const bucket: number = GetPlayerRoutingBucket(source);
   const remove: GraffitiTag[] = [];
 
   for (const id in graffitiTags) {
-    const graffiti = graffitiTags[id];
+    const graffiti: GraffitiTag = graffitiTags[id];
     const graffitiCoords: number[] = JSON.parse(graffiti.coords);
 
-    const distance = getDistance(playerCoords, graffitiCoords);
+    if (graffiti.dimension !== bucket) continue;
+
+    const distance: number = getDistance(coords, graffitiCoords);
     if (distance <= radius && (includeAdmin || graffiti.creator_id === identifier)) {
       remove.push(graffiti);
     }
   }
 
   if (remove.length === 0) {
-    return sendChatMessage(source, '^#d73232ERROR: ^#ffffffNo graffiti found within the specified radius.');
+    return sendChatMessage(source, `^#d73232ERROR: ^#ffffffNo graffiti found within a radius of ${radius} units and in dimension ${bucket}.`);
   }
 
   for (const graffiti of remove) {
@@ -172,7 +175,7 @@ async function massRemoveGraffiti(source: number, args: { radius: number; includ
     }
   }
 
-  sendChatMessage(source, `^#5e81acSuccessfully removed ${remove.length} graffiti tags within ${radius} units.`);
+  sendChatMessage(source, `^#5e81acSuccessfully removed ^#ffffff${remove.length} graffiti tags within ^#ffffff${radius} units and in your current dimension ${bucket}`);
 }
 
 onClientCallback('fivem-graffiti:server:getRoutingBucket', (source: number): number => {
