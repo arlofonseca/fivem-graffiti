@@ -37,7 +37,7 @@ netEvent('fivem-graffiti:client:createGraffitiTag', (id: number, creator_id: str
   drawGraffiti[id] = false;
 
   const vec = Cfx.Vector3.fromArray(JSON.parse(graffiti.coords));
-  startSpray(vec, text, font, size, hex);
+  sprayStart(vec, text, font, size, hex);
 
   points[id] = new Point({
     coords: [vec.x, vec.y, vec.z],
@@ -79,7 +79,7 @@ netEvent('fivem-graffiti:client:deleteGraffitiTag', (id: number) => {
   delete drawGraffiti[id];
 });
 
-async function startSpray(coords: Cfx.Vector3, text: string, size: number, font: number, hex: string) {
+async function sprayStart(coords: Cfx.Vector3, text: string, size: number, font: number, hex: string) {
   const ptxDict = 'scr_recartheft';
   const ptxName = 'scr_wheel_burnout';
   const obj = sprayObject();
@@ -96,21 +96,23 @@ async function startSpray(coords: Cfx.Vector3, text: string, size: number, font:
   const particleInterval = setInterval(() => {
     if (alphaValue >= 255) {
       clearInterval(particleInterval);
-      sprayObjectCleanup(obj);
+      if (DoesEntityExist(obj)) {
+        DeleteObject(obj);
+      }
+      ClearPedTasks(cache.ped);
       return;
     }
 
-    const fwdVector = GetEntityForwardVector(cache.ped);
-    const plyCoords = GetEntityCoords(cache.ped, true);
-    const plyHeading = GetEntityHeading(cache.ped);
-    const ptxCoords = { x: plyCoords[0] + fwdVector[0] * 0.5, y: plyCoords[1] + fwdVector[1] * 0.5, z: plyCoords[2] - 0.5 };
+    const ptxCoords = { x: coords.x, y: coords.y, z: coords.z };
 
     UseParticleFxAsset(ptxDict);
     SetParticleFxNonLoopedColour(rgbaColor.r / 255, rgbaColor.g / 255, rgbaColor.b / 255);
-    StartNetworkedParticleFxNonLoopedAtCoord(ptxName, ptxCoords.x, ptxCoords.y, ptxCoords.z + 1.5, 0, 0, plyHeading, 0.5, false, false, true);
+    StartNetworkedParticleFxNonLoopedAtCoord(ptxName, ptxCoords.x, ptxCoords.y, ptxCoords.z + 1.5, 0, 0, 0, size * 0.5, false, false, true);
 
     alphaValue++;
   }, 200);
+
+  console.log(coords, text, size, font, hex)
 }
 
 function sprayObject() {
@@ -121,13 +123,6 @@ function sprayObject() {
   AttachEntityToEntity(obj, cache.ped, GetPedBoneIndex(cache.ped, 57005), objPosition.x, objPosition.y, objPosition.z, objRotation.x, objRotation.y, objRotation.z, true, true, false, true, 0, true);
 
   return obj;
-}
-
-function sprayObjectCleanup(sprayObject: number) {
-  if (DoesEntityExist(sprayObject)) {
-    DeleteObject(sprayObject);
-  }
-  ClearPedTasks(cache.ped);
 }
 
 onNet('fivem-graffiti:client:getHex', (hexColor: string) => {
