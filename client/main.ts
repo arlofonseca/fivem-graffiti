@@ -24,7 +24,7 @@ netEvent('fivem-graffiti:client:createGraffitiTag', (id: number, creator_id: str
   const graffiti: Graffiti = {
     id: id,
     creator_id: creator_id,
-    coords: Cfx.Vector3.fromArray(coords),
+    coords: JSON.stringify(Cfx.Vector3.fromArray(coords)),
     dimension: dimension,
     text: text,
     font: font,
@@ -36,14 +36,15 @@ netEvent('fivem-graffiti:client:createGraffitiTag', (id: number, creator_id: str
   createdGraffiti[id] = graffiti;
   drawGraffiti[id] = false;
 
-  startSpray(graffiti.coords, text, font, size, hex);
+  const vec = Cfx.Vector3.fromArray(JSON.parse(graffiti.coords));
+  startSpray(vec, text, font, size, hex);
 
   points[id] = new Point({
-    coords: coords,
+    coords: [vec.x, vec.y, vec.z],
     distance: config.graffiti_distance,
     nearby: async (): Promise<void> => {
       const plyCoords: Cfx.Vector3 = Cfx.Game.PlayerPed.Position;
-      const distance: number = plyCoords.distance(graffiti.coords);
+      const distance: number = plyCoords.distance(vec);
       if (playerBucket === graffiti.dimension && distance <= config.graffiti_distance) {
         drawGraffiti[id] = true;
 
