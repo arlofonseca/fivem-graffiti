@@ -16,6 +16,7 @@ export interface GraffitiTag {
 }
 
 const graffitiTags: Record<number, GraffitiTag> = {};
+const spraycanDurability: Record<number, number> = {};
 
 const group: string = `group.${config.ace_group}`;
 const restrictedGroup: string | undefined = config.admin_only ? group : undefined;
@@ -55,17 +56,29 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
   const activeGraffiti: number = await db.countGraffiti(identifier);
 
   if (activeGraffiti >= config.max_graffiti_tags) {
-    return sendChatMessage(source, '^#d73232 ERROR: ^#ffffffYou cannot have more than {0} active Graffiti Tags at a time.', [config.max_graffiti_tags]);
+    return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou cannot have more than {0} active Graffiti Tags at a time.', [config.max_graffiti_tags]);
   }
 
   const spraycan: number = exports.ox_inventory.GetItemCount(source, 'spraycan');
   if (spraycan <= 0) {
-    return sendChatMessage(source, '^#d73232 ERROR: ^#ffffffYou need a spray can to create graffiti.');
+    return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou need a spray can to create graffiti.');
   }
 
   try {
-    if (!exports.ox_inventory.RemoveItem(source, 'spraycan', 1)) {
-      return sendChatMessage(source, '^#d73232ERROR: ^#ffffffFailed to remove spray can from inventory.');
+    if (!spraycanDurability[source]) {
+      spraycanDurability[source] = config.usage_limit;
+    }
+
+    if (spraycanDurability[source] <= 0) {
+      return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou have no more spray left inside of your spray can.');
+    }
+
+    spraycanDurability[source]--;
+
+    if (spraycanDurability[source] === 0) {
+      if (!exports.ox_inventory.RemoveItem(source, 'spraycan', 1)) {
+        return sendChatMessage(source, '^#d73232ERROR ^#ffffffFailed to remove spray can from inventory.');
+      }
     }
 
     // @ts-ignore
@@ -83,7 +96,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
     const rowsChanged: unknown = await db.saveGraffiti(identifier, coordsStr, dimension, text, font, size, hex);
     if (!rowsChanged || (typeof rowsChanged === 'number' && rowsChanged === 0)) {
       console.error('Failed to insert Graffiti Tag into the database');
-      return sendChatMessage(source, '^#d73232ERROR: ^#ffffffFailed to create Graffiti Tag.');
+      return sendChatMessage(source, '^#d73232ERROR ^#ffffffFailed to create Graffiti Tag.');
     }
 
     const id: number | undefined = (rowsChanged as any).insertId;
@@ -106,7 +119,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
     sendChatMessage(source, '^#5e81acYou have successfully created a Graffiti Tag. Use ^#ffffff/cleangraffiti ^#5e81acto remove it');
   } catch (error) {
     console.error('Error creating Graffiti Tag:', error);
-    sendChatMessage(source, '^#d73232ERROR: ^#ffffffAn error occurred while creating the Graffiti Tag.');
+    sendChatMessage(source, '^#d73232ERROR ^#ffffffAn error occurred while creating the Graffiti Tag.');
   }
 }
 
@@ -118,27 +131,27 @@ async function deleteGraffitiTag(source: number, args: { graffitiId: number }): 
   try {
     const data: GraffitiTag = graffitiTags[graffitiId];
     if (!data) {
-      sendChatMessage(source, '^#d73232ERROR: ^#ffffffNo Graffiti Tag found with the specified ID.');
+      sendChatMessage(source, '^#d73232ERROR ^#ffffffNo Graffiti Tag found with the specified ID.');
       return;
     }
 
     // @ts-ignore
     if (data.creator_id !== identifier && !isAdmin(source)) {
-      return sendChatMessage(source, '^#d73232ERROR: ^#ffffffYou cannot delete a Graffiti Tag that you did not create.');
+      return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou cannot delete a Graffiti Tag that you did not create.');
     }
 
     // @ts-ignore
     if (!isAdmin(source)) {
       const rag: number = exports.ox_inventory.GetItemCount(source, 'rag');
       if (rag <= 0) {
-        return sendChatMessage(source, '^#d73232 ERROR: ^#ffffffYou need a rag to clean graffiti.');
+        return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou need a rag to clean graffiti.');
       }
     }
 
     const rowsChanged: unknown = await db.deleteGraffiti(graffitiId);
     if (!rowsChanged || (typeof rowsChanged === 'number' && rowsChanged === 0)) {
       console.error('Failed to delete Graffiti Tag from the database');
-      sendChatMessage(source, '^#d73232ERROR: ^#ffffffFailed to delete Graffiti Tag.');
+      sendChatMessage(source, '^#d73232ERROR ^#ffffffFailed to delete Graffiti Tag.');
       return;
     }
 
@@ -147,7 +160,7 @@ async function deleteGraffitiTag(source: number, args: { graffitiId: number }): 
     sendChatMessage(source, '^#5e81acGraffiti Tag was successfully deleted.');
   } catch (error) {
     console.error('Error deleting Graffiti Tag:', error);
-    sendChatMessage(source, '^#d73232ERROR: ^#ffffffAn error occurred while deleting the Graffiti Tag.');
+    sendChatMessage(source, '^#d73232ERROR ^#ffffffAn error occurred while deleting the Graffiti Tag.');
   }
 }
 
@@ -176,7 +189,7 @@ async function massRemoveGraffiti(source: number, args: { radius: number; includ
   }
 
   if (remove.length === 0) {
-    return sendChatMessage(source, `^#d73232ERROR: ^#ffffffNo graffiti found within a radius of ${radius} units and in dimension ${bucket}.`);
+    return sendChatMessage(source, `^#d73232ERROR ^#ffffffNo graffiti found within a radius of ${radius} units and in dimension ${bucket}.`);
   }
 
   for (const graffiti of remove) {
@@ -215,7 +228,7 @@ async function nearbyGraffiti(source: number): Promise<void> {
   }
 
   if (nearbyGraffitiIds.length === 0) {
-    return sendChatMessage(source, '^#d73232ERROR: ^#ffffffYou are not near any active graffiti tags.');
+    return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou are not near any active graffiti tags.');
   }
 
   sendChatMessage(source, '^#5e81ac--------- ^#ffffffNearby Graffiti ^#5e81ac---------');
