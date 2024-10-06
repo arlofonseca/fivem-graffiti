@@ -179,37 +179,33 @@ async function massRemoveGraffiti(source: number, args: { radius: number; includ
 
 async function nearbyGraffiti(source: number): Promise<void> {
   // @ts-ignore
-  const identifier: string = GetPlayerIdentifierByType(source, 'license2');
-  // @ts-ignore
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
   const nearbyGraffitiIds: number[] = [];
 
   for (const id in graffitiTags) {
     const graffiti: GraffitiTag = graffitiTags[id];
 
-    if (graffiti.creator_id === identifier) {
-      const graffitiCoords = JSON.parse(graffiti.coords);
-      const distance: number = Math.sqrt(
-        Math.pow(graffitiCoords[0] - coords[0], 2) +
-        Math.pow(graffitiCoords[1] - coords[1], 2) +
-        Math.pow(graffitiCoords[2] - coords[2], 2)
-      );
+    const graffitiCoords = JSON.parse(graffiti.coords);
+    const distance: number = Math.sqrt(
+      Math.pow(graffitiCoords[0] - coords[0], 2) +
+      Math.pow(graffitiCoords[1] - coords[1], 2) +
+      Math.pow(graffitiCoords[2] - coords[2], 2)
+    );
 
-      if (distance < config.graffiti_distance) {
-        nearbyGraffitiIds.push(graffiti.id);
-      }
+    if (distance < config.graffiti_distance) {
+      nearbyGraffitiIds.push(graffiti.id);
     }
   }
 
   if (nearbyGraffitiIds.length === 0) {
-    return sendChatMessage(source, '^#d73232ERROR: ^#ffffffYou are not near any active graffiti tags that you created.');
+    return sendChatMessage(source, '^#d73232ERROR: ^#ffffffYou are not near any active graffiti tags.');
   }
 
   sendChatMessage(source, '^#5e81ac--------- ^#ffffffNearby Graffiti ^#5e81ac---------');
 
   for (const id of nearbyGraffitiIds) {
     const marker: GraffitiTag = graffitiTags[id];
-    const message = (`Graffiti #${marker.id}: [${marker.created_date}]: Created by: ${identifier}`);
+    const message = (`[${marker.created_date}] Graffiti #${marker.id}: Created by: ${marker.creator_id} | Location: ${marker.coords} | Dimension: ${marker.dimension} | Text: ${marker.text} | Font: ${marker.font} | Size: ${marker.size} | Hex: ${marker.hex}`);
     sendChatMessage(source, message);
   }
 }
