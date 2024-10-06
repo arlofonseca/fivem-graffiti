@@ -50,11 +50,9 @@ export function calculateRotationFromNormal(normal: { x: number; y: number; z: n
 }
 
 export function getRaycast(): { result: number; hit: any; endCoords: number[]; surfaceNormal: number[]; entityHit: number } {
-  // Get start position as an array and map it to x, y, z
   let startPositionArray = GetFinalRenderedCamCoord();
   let startPosition = { x: startPositionArray[0], y: startPositionArray[1], z: startPositionArray[2] };
 
-  // Get camera rotation and map it to x, y, z
   let cameraRotationArray = GetFinalRenderedCamRot(2);
   let cameraRotation = { x: cameraRotationArray[0], y: cameraRotationArray[1], z: cameraRotationArray[2] };
 

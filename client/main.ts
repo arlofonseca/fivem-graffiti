@@ -99,7 +99,15 @@ async function startSpray(coords: Cfx.Vector3, text: string, size: number, font:
       return;
     }
 
-    sprayParticles(ptxDict, ptxName, rgbaColor, alphaValue);
+    const fwdVector = GetEntityForwardVector(cache.ped);
+    const plyCoords = GetEntityCoords(cache.ped, true);
+    const plyHeading = GetEntityHeading(cache.ped);
+    const ptxCoords = { x: plyCoords[0] + fwdVector[0] * 0.5, y: plyCoords[1] + fwdVector[1] * 0.5, z: plyCoords[2] - 0.5 };
+
+    UseParticleFxAsset(ptxDict);
+    SetParticleFxNonLoopedColour(rgbaColor.r / 255, rgbaColor.g / 255, rgbaColor.b / 255);
+    StartNetworkedParticleFxNonLoopedAtCoord(ptxName, ptxCoords.x, ptxCoords.y, ptxCoords.z + 1.5, 0, 0, plyHeading, 0.5, false, false, true);
+
     alphaValue++;
   }, 200);
 }
@@ -119,17 +127,6 @@ function sprayObjectCleanup(sprayObject: number) {
     DeleteObject(sprayObject);
   }
   ClearPedTasks(cache.ped);
-}
-
-function sprayParticles(ptxDict: string, ptxName: string, rgbaColor: { r: number; g: number; b: number }, alphaValue: number) {
-  const fwdVector = GetEntityForwardVector(cache.ped);
-  const plyCoords = GetEntityCoords(cache.ped, true);
-  const plyHeading = GetEntityHeading(cache.ped);
-  const ptxCoords = { x: plyCoords[0] + fwdVector[0] * 0.5, y: plyCoords[1] + fwdVector[1] * 0.5, z: plyCoords[2] - 0.5 };
-
-  UseParticleFxAsset(ptxDict);
-  SetParticleFxNonLoopedColour(rgbaColor.r / 255, rgbaColor.g / 255, rgbaColor.b / 255);
-  StartNetworkedParticleFxNonLoopedAtCoord(ptxName, ptxCoords.x, ptxCoords.y, ptxCoords.z + 1.5, 0, 0, plyHeading, 0.5, false, false, true);
 }
 
 onNet('fivem-graffiti:client:getHex', (hexColor: string) => {
