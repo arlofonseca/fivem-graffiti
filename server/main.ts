@@ -123,6 +123,79 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
   }
 }
 
+// @todo: play cleaning animation client side
+async function cleanNearestGraffiti(source: number): Promise<void> {
+  let cleanDistance: number = 5;
+  let closestGraffiti: GraffitiTag | null = null;
+
+  // @ts-ignore
+  const coords: number[] = GetEntityCoords(GetPlayerPed(source));
+  // @ts-ignore
+  const bucket: number = GetPlayerRoutingBucket(source);
+
+  for (const id in graffitiTags) {
+    const graffiti: GraffitiTag = graffitiTags[id];
+    const graffitiCoords: number[] = JSON.parse(graffiti.coords);
+
+    if (graffiti.dimension !== bucket) continue;
+
+    const distance: number = getDistance(coords, graffitiCoords);
+    if (distance < cleanDistance) {
+      cleanDistance = distance;
+      closestGraffiti = graffiti;
+    }
+  }
+
+  if (closestGraffiti) {
+    try {
+      const rowsChanged: unknown = await db.deleteGraffiti(closestGraffiti.id);
+      if (rowsChanged && (typeof rowsChanged === 'number' && rowsChanged > 0)) {
+        delete graffitiTags[closestGraffiti.id];
+        emitNet('fivem-graffiti:client:deleteGraffitiTag', -1, closestGraffiti.id);
+        sendChatMessage(source, `^#5e81acSuccessfully removed the nearest graffiti tag.`);
+      }
+    } catch (error) {
+      console.error(`Failed to remove graffiti tag with ID ${closestGraffiti.id}:`, error);
+      sendChatMessage(source, '^#d73232ERROR ^#ffffffAn error occurred while removing the graffiti tag.');
+    }
+  } else {
+    sendChatMessage(source, '^#d73232ERROR ^#ffffffNo graffiti found nearby in your current dimension.');
+  }
+}
+
+async function nearbyGraffiti(source: number): Promise<void> {
+  // @ts-ignore
+  const coords: number[] = GetEntityCoords(GetPlayerPed(source));
+  const nearbyGraffitiIds: number[] = [];
+
+  for (const id in graffitiTags) {
+    const graffiti: GraffitiTag = graffitiTags[id];
+
+    const graffitiCoords = JSON.parse(graffiti.coords);
+    const distance: number = Math.sqrt(
+      Math.pow(graffitiCoords[0] - coords[0], 2) +
+      Math.pow(graffitiCoords[1] - coords[1], 2) +
+      Math.pow(graffitiCoords[2] - coords[2], 2)
+    );
+
+    if (distance < 50) {
+      nearbyGraffitiIds.push(graffiti.id);
+    }
+  }
+
+  if (nearbyGraffitiIds.length === 0) {
+    return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou are not near any active graffiti tags.');
+  }
+
+  sendChatMessage(source, '^#5e81ac--------- ^#ffffffNearby Graffiti ^#5e81ac---------');
+
+  for (const id of nearbyGraffitiIds) {
+    const marker: GraffitiTag = graffitiTags[id];
+    const message = (`[${marker.created_date}] Graffiti #${marker.id}: Created by: ${marker.creator_id} | Location: ${marker.coords} | Dimension: ${marker.dimension} | Text: ${marker.text} | Font: ${marker.font} | Size: ${marker.size} | Hex: ${marker.hex}`);
+    sendChatMessage(source, message);
+  }
+}
+
 async function deleteGraffitiTag(source: number, args: { graffitiId: number }): Promise<void> {
   // @ts-ignore
   const identifier: string = GetPlayerIdentifierByType(source, 'license2');
@@ -207,39 +280,6 @@ async function massRemoveGraffiti(source: number, args: { radius: number; includ
   sendChatMessage(source, `^#5e81acSuccessfully removed ^#ffffff${remove.length} graffiti tags within ^#ffffff${radius} units and in your current dimension ${bucket}`);
 }
 
-async function nearbyGraffiti(source: number): Promise<void> {
-  // @ts-ignore
-  const coords: number[] = GetEntityCoords(GetPlayerPed(source));
-  const nearbyGraffitiIds: number[] = [];
-
-  for (const id in graffitiTags) {
-    const graffiti: GraffitiTag = graffitiTags[id];
-
-    const graffitiCoords = JSON.parse(graffiti.coords);
-    const distance: number = Math.sqrt(
-      Math.pow(graffitiCoords[0] - coords[0], 2) +
-      Math.pow(graffitiCoords[1] - coords[1], 2) +
-      Math.pow(graffitiCoords[2] - coords[2], 2)
-    );
-
-    if (distance < config.graffiti_distance) {
-      nearbyGraffitiIds.push(graffiti.id);
-    }
-  }
-
-  if (nearbyGraffitiIds.length === 0) {
-    return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou are not near any active graffiti tags.');
-  }
-
-  sendChatMessage(source, '^#5e81ac--------- ^#ffffffNearby Graffiti ^#5e81ac---------');
-
-  for (const id of nearbyGraffitiIds) {
-    const marker: GraffitiTag = graffitiTags[id];
-    const message = (`[${marker.created_date}] Graffiti #${marker.id}: Created by: ${marker.creator_id} | Location: ${marker.coords} | Dimension: ${marker.dimension} | Text: ${marker.text} | Font: ${marker.font} | Size: ${marker.size} | Hex: ${marker.hex}`);
-    sendChatMessage(source, message);
-  }
-}
-
 onClientCallback('fivem-graffiti:server:getRoutingBucket', (source: number): number => {
   // @ts-ignore
   return GetPlayerRoutingBucket(source);
@@ -294,7 +334,17 @@ addCommand(['graffiti', 'grf'], createGraffitiTag, {
   ],
 });
 
-addCommand(['cleangraffiti', 'cgrf'], deleteGraffitiTag, {
+addCommand(['cleangraffiti', 'cgrf'], cleanNearestGraffiti, {
+  params: [],
+  restricted: false,
+});
+
+addCommand(['nearbygraffitis', 'ng'], nearbyGraffiti, {
+  params: [],
+  restricted: restrictedGroup,
+});
+
+addCommand(['removegraffiti', 'rg'], deleteGraffitiTag, {
   params: [
     {
       name: 'graffitiId',
@@ -319,10 +369,5 @@ addCommand(['massremovegraffiti', 'mrg'], massRemoveGraffiti, {
       optional: true,
     },
   ],
-  restricted: restrictedGroup,
-});
-
-addCommand(['nearbygraffitis', 'ng'], nearbyGraffiti, {
-  params: [],
   restricted: restrictedGroup,
 });
