@@ -1,4 +1,4 @@
-# fivem-graffiti
+# fivem-graffiti (WIP)
 
 A standalone 3D-Graffiti system which gives the ability to tag walls and objects.
 
