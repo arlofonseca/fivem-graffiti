@@ -50,7 +50,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
     return sendChatMessage(source, '^#d73232 ERROR: ^#ffffffYou cannot have more than {0} active Graffiti Tags at a time.', [config.max_graffiti_tags]);
   }
 
-  //@ts-ignore
+  // @ts-ignore
   const text = `${args.text} ${args.filter((item: any): boolean => item !== null).join(' ')}`;
   // @ts-ignore
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
@@ -96,7 +96,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
 }
 
 async function deleteGraffitiTag(source: number, args: { graffitiId: number }): Promise<void> {
-  //@ts-ignore
+  // @ts-ignore
   const identifier: string = GetPlayerIdentifierByType(source, 'license2');
   const graffitiId: number = args.graffitiId;
 
@@ -107,8 +107,8 @@ async function deleteGraffitiTag(source: number, args: { graffitiId: number }): 
       return;
     }
 
-    //@ts-ignore
-    if (data.owner !== identifier && !isAdmin) {
+    // @ts-ignore
+    if (data.creator_id !== identifier && !isAdmin(source)) {
       return sendChatMessage(source, '^#d73232ERROR: ^#ffffffYou cannot delete a Graffiti Tag that you did not create.');
     }
 
