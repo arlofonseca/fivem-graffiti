@@ -3,7 +3,20 @@ import { GraffitiTag } from './main';
 
 export async function createGraffitiTable(): Promise<void> {
   try {
-    await oxmysql.rawExecute(`CREATE TABLE IF NOT EXISTS graffiti (id INT NOT NULL AUTO_INCREMENT, creator_id VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL, coords LONGTEXT NOT NULL, dimension INT DEFAULT 0, text LONGTEXT NOT NULL, font INT DEFAULT 0, size INT DEFAULT 0, hex LONGTEXT NOT NULL, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
+    await oxmysql.rawExecute(
+      `CREATE TABLE IF NOT EXISTS graffiti (
+        id INT NOT NULL AUTO_INCREMENT,
+        creator_id VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+        coords LONGTEXT NOT NULL,
+        dimension INT DEFAULT 0,
+        text LONGTEXT NOT NULL,
+        font INT DEFAULT 0,
+        size INT DEFAULT 0,
+        hex LONGTEXT NOT NULL,
+        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`
+    );
   } catch (error) {
     console.error('createGraffitiTable:', error);
   }

@@ -12,6 +12,7 @@ interface Graffiti {
   font: number;
   size: number;
   hex: string;
+  created_date: Date;
   displayed: boolean;
 }
 
@@ -20,7 +21,7 @@ const drawGraffiti: Record<number, boolean> = {};
 const points: Record<number, Point> = {};
 let playerBucket: number = 0;
 
-netEvent('fivem-graffiti:client:createGraffitiTag', (id: number, creator_id: string, coords: [number, number, number], dimension: number, text: string, font: number, size: number, hex: string) => {
+netEvent('fivem-graffiti:client:createGraffitiTag', (id: number, creator_id: string, coords: [number, number, number], dimension: number, text: string, font: number, size: number, hex: string, created_date: Date) => {
   const graffiti: Graffiti = {
     id: id,
     creator_id: creator_id,
@@ -30,6 +31,7 @@ netEvent('fivem-graffiti:client:createGraffitiTag', (id: number, creator_id: str
     font: font,
     size: size,
     hex: hex,
+    created_date: created_date,
     displayed: false,
   };
 
