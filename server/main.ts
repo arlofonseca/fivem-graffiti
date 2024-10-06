@@ -47,7 +47,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
   const activeGraffiti: number = await db.countGraffiti(identifier);
 
   if (activeGraffiti >= config.max_graffiti_tags) {
-    return sendChatMessage(source, '^1 ERROR: ^0 You cannot have more than {0} active Graffiti Tags at a time.', [config.max_graffiti_tags]);
+    return sendChatMessage(source, '^#d73232 ERROR: ^#ffffffYou cannot have more than {0} active Graffiti Tags at a time.', [config.max_graffiti_tags]);
   }
 
   //@ts-ignore
@@ -63,13 +63,13 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
   try {
     const hex = await getHex(source, args.hex);
     if (!hex) {
-      return sendChatMessage(source, '^1 ERROR: ^0 Invalid hex color.');
+      return sendChatMessage(source, '^#d73232 ERROR: ^#ffffffInvalid hex color.');
     }
 
     const rowsChanged: unknown = await db.saveGraffiti(identifier, coordsStr, dimension, text, font, size, hex);
     if (!rowsChanged || (typeof rowsChanged === 'number' && rowsChanged === 0)) {
       console.error('Failed to insert Graffiti Tag into the database');
-      return sendChatMessage(source, '^1 ERROR: ^0 Failed to create Graffiti Tag.');
+      return sendChatMessage(source, '^#d73232ERROR: ^#ffffffFailed to create Graffiti Tag.');
     }
 
     const id: number | undefined = (rowsChanged as any).insertId;
@@ -88,10 +88,10 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
 
     graffitiTags[id] = graffiti;
     emitNet('fivem-graffiti:client:createGraffitiTag', -1, id, coords, dimension, text, font, size, hex);
-    sendChatMessage(source, '^4 You have successfully created a Graffiti Tag. Use ^0 /cleangraffiti ^4 to remove it.');
+    sendChatMessage(source, '^#5e81acYou have successfully created a Graffiti Tag. Use ^#ffffff/cleangraffiti ^#5e81acto remove it.');
   } catch (error) {
     console.error('Error creating Graffiti Tag:', error);
-    sendChatMessage(source, '^1 ERROR: ^0 An error occurred while creating the Graffiti Tag.');
+    sendChatMessage(source, '^#d73232ERROR: ^#ffffffAn error occurred while creating the Graffiti Tag.');
   }
 }
 
@@ -103,28 +103,28 @@ async function deleteGraffitiTag(source: number, args: { graffitiId: number }): 
   try {
     const data: GraffitiTag = graffitiTags[graffitiId];
     if (!data) {
-      sendChatMessage(source, '^1 ERROR: ^0 No Graffiti Tag found with the specified ID.');
+      sendChatMessage(source, '^#d73232ERROR: ^#ffffffNo Graffiti Tag found with the specified ID.');
       return;
     }
 
     //@ts-ignore
     if (data.owner !== identifier && !isAdmin) {
-      return sendChatMessage(source, '^1 ERROR: ^0 You cannot delete a Graffiti Tag that you did not create.');
+      return sendChatMessage(source, '^#d73232ERROR: ^#ffffffYou cannot delete a Graffiti Tag that you did not create.');
     }
 
     const rowsChanged: unknown = await db.deleteGraffiti(graffitiId);
     if (!rowsChanged || (typeof rowsChanged === 'number' && rowsChanged === 0)) {
       console.error('Failed to delete Graffiti Tag from the database');
-      sendChatMessage(source, '^1 ERROR: ^0 Failed to delete Graffiti Tag.');
+      sendChatMessage(source, '^#d73232ERROR: ^#ffffffFailed to delete Graffiti Tag.');
       return;
     }
 
     delete graffitiTags[graffitiId];
     emitNet('fivem-graffiti:client:deleteGraffitiTag', source, graffitiId);
-    sendChatMessage(source, '^4 Graffiti Tag was successfully deleted.');
+    sendChatMessage(source, '^#5e81acGraffiti Tag was successfully deleted.');
   } catch (error) {
     console.error('Error deleting Graffiti Tag:', error);
-    sendChatMessage(source, '^1 ERROR: ^0 An error occurred while deleting the Graffiti Tag.');
+    sendChatMessage(source, '^#d73232ERROR: ^#ffffffAn error occurred while deleting the Graffiti Tag.');
   }
 }
 
