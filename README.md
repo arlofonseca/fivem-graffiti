@@ -57,3 +57,7 @@ Use `pnpm watch` to rebuild whenever a file is modified.
 #### [ADMIN] `/massremovegraffiti [radius]` _(alias: `/mrg`)_
 
 - Mass remove graffiti from the database and the world within a specified distance. This powerful command enables the removal of multiple graffiti pieces within a certain range. If the second optional parameter is set to `1`, it will also delete graffiti created by admins.
+
+## Suppport
+
+For any feedback or support regarding this script, please reach out on [discord](https://discord.com/invite/QZgyyBkUkp).
