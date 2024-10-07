@@ -3,5 +3,7 @@
   "graffiti_distance": 15,
   "admin_only": true,
   "ace_group": "admin",
+  "spraycan_item": "spraycan",
+  "clean_item": "rag",
   "usage_limit": 3
 }

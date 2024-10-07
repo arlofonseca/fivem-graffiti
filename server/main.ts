@@ -31,7 +31,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
     return sendChatMessage(source, `^#d73232ERROR ^#ffffffYou cannot have more than ${config.max_graffiti_tags} active Graffiti Tags at a time.`);
   }
 
-  const spraycan: number = exports.ox_inventory.GetItemCount(source, 'spraycan');
+  const spraycan: number = exports.ox_inventory.GetItemCount(source, config.spraycan_item);
   if (spraycan <= 0) {
     return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou need a spray can to create graffiti.');
   }
@@ -48,7 +48,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
     spraycanDurability[source]--;
 
     if (spraycanDurability[source] === 0) {
-      if (!exports.ox_inventory.RemoveItem(source, 'spraycan', 1)) {
+      if (!exports.ox_inventory.RemoveItem(source, config.spraycan_item, 1)) {
         return sendChatMessage(source, '^#d73232ERROR ^#ffffffFailed to remove spray can from inventory.');
       }
     }
@@ -120,7 +120,7 @@ async function cleanNearestGraffiti(source: number): Promise<void> {
 
   // @ts-ignore
   if (!isAdmin(source, group)) {
-    const rag: number = exports.ox_inventory.GetItemCount(source, 'rag');
+    const rag: number = exports.ox_inventory.GetItemCount(source, config.clean_item);
     if (rag <= 0) {
       return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou need a rag to clean graffiti.');
     }
