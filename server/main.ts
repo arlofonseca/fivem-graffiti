@@ -2,7 +2,7 @@ import * as Cfx from '@nativewrappers/fivem-server';
 import { addCommand, onClientCallback } from '@overextended/ox_lib/server';
 import * as config from '../config.json';
 import * as db from './db';
-import { getDistance, getHex, isAdmin, sendChatMessage, } from './utils';
+import { getDistance, isAdmin, sendChatMessage, } from './utils';
 
 export interface GraffitiTag {
   id: number;
@@ -62,7 +62,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
     const dimension: number = GetPlayerRoutingBucket(source);
     const font: number = parseInt(args.font.toString(), 10);
     const size: number = parseInt(args.size.toString(), 10);
-    const hex: string = await getHex(source, args.hex);
+    const hex: string = args.hex;
     const createdDate = new Date();
 
     const rowsChanged: unknown = await db.saveGraffiti(identifier, coordsStr, dimension, text, font, size, hex);

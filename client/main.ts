@@ -51,7 +51,7 @@ netEvent('fivem-graffiti:client:createGraffitiTag', (id: number, creator_id: str
         drawGraffiti[id] = true;
 
         if (distance <= 1.5 && !graffiti.displayed) {
-          // todo: display graffiti
+          // @todo: display graffiti
           graffiti.displayed = true;
         } else if (distance > 1.5) {
           graffiti.displayed = false;
@@ -127,11 +127,6 @@ function sprayObject() {
   return obj;
 }
 
-onNet('fivem-graffiti:client:getHex', (hexColor: string) => {
-  const processedHex = hexColor;
-  emitNet('fivem-graffiti:server:returnHex', processedHex);
-});
-
 on('onClientResourceStart', (resourceName: string) => {
   if (resourceName !== 'fivem-graffiti') return;
 
@@ -149,7 +144,7 @@ setInterval(async () => {
   for (const id in drawGraffiti) {
     if (drawGraffiti[id]) {
       const graffiti = createdGraffiti[id];
-      // todo
+      // @todo
     }
   }
 });
