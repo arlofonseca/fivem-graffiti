@@ -2,7 +2,7 @@ import * as Cfx from '@nativewrappers/fivem-server';
 import { addCommand, onClientCallback } from '@overextended/ox_lib/server';
 import * as config from '../config.json';
 import * as db from './db';
-import { sendChatMessage, isAdmin, getHex, getDistance, } from './utils';
+import { getDistance, getHex, isAdmin, sendChatMessage, } from './utils';
 
 export interface GraffitiTag {
   id: number;
@@ -28,7 +28,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
   const activeGraffiti: number = await db.countGraffiti(identifier);
 
   if (activeGraffiti >= config.max_graffiti_tags) {
-    return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou cannot have more than {0} active Graffiti Tags at a time.', [config.max_graffiti_tags]);
+    return sendChatMessage(source, `^#d73232ERROR ^#ffffffYou cannot have more than ${config.max_graffiti_tags} active Graffiti Tags at a time.`);
   }
 
   const spraycan: number = exports.ox_inventory.GetItemCount(source, 'spraycan');

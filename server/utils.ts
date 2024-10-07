@@ -1,5 +1,5 @@
-export function sendChatMessage(source: number, template: string, args?: any[]) {
-    emitNet('chat:addMessage', source, { template, args });
+export function sendChatMessage(source: number, message: string) {
+    return exports.chat.addMessage(source, message);
 }
 
 export function isAdmin(source: string, group: string): boolean {

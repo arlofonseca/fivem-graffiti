@@ -1,7 +1,7 @@
 import * as Cfx from '@nativewrappers/client';
 import lib, { cache, Point, triggerServerCallback } from '@overextended/ox_lib/client';
 import * as config from '../config.json';
-import { netEvent, hexToRgb, getDirectionFromRotation, calculateRotationFromNormal, getRaycast } from './utils';
+import { calculateRotationFromNormal, getDirectionFromRotation, getRaycast, hexToRgb, netEvent } from './utils';
 
 interface Graffiti {
   id: number;
