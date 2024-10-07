@@ -2,6 +2,7 @@ import * as Cfx from '@nativewrappers/fivem-server';
 import { addCommand, onClientCallback } from '@overextended/ox_lib/server';
 import * as config from '../config.json';
 import * as db from './db';
+import { sendChatMessage, isAdmin, getHex, getDistance, } from './utils';
 
 export interface GraffitiTag {
   id: number;
@@ -20,35 +21,6 @@ const spraycanDurability: Record<number, number> = {};
 
 const group: string = `group.${config.ace_group}`;
 const restrictedGroup: string | undefined = config.admin_only ? group : undefined;
-
-function sendChatMessage(source: number, template: string, args?: any[]) {
-  emitNet('chat:addMessage', source, { template, args });
-}
-
-function isAdmin(source: string): boolean {
-  return IsPlayerAceAllowed(source, group);
-}
-
-function getHex(source: number, hexColor: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    emitNet('fivem-graffiti:client:getHex', source, hexColor);
-
-    onNet('fivem-graffiti:server:returnHex', (returnedHex: string) => {
-      if (returnedHex) {
-        resolve(returnedHex);
-      } else {
-        reject('Failed to get hex color from client.');
-      }
-    });
-  });
-}
-
-function getDistance(one: number[], two: number[]): number {
-  const x = one[0] - two[0];
-  const y = one[1] - two[1];
-  const z = one[2] - two[2];
-  return Math.sqrt(x * x + y * y + z * z);
-}
 
 async function createGraffitiTag(source: number, args: { text: string; font: number; size: number; hex: string }): Promise<void> {
   // @ts-ignore
@@ -209,12 +181,12 @@ async function deleteGraffitiTag(source: number, args: { graffitiId: number }): 
     }
 
     // @ts-ignore
-    if (data.creator_id !== identifier && !isAdmin(source)) {
+    if (data.creator_id !== identifier && !isAdmin(source, group)) {
       return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou cannot delete a Graffiti Tag that you did not create.');
     }
 
     // @ts-ignore
-    if (!isAdmin(source)) {
+    if (!isAdmin(source, group)) {
       const rag: number = exports.ox_inventory.GetItemCount(source, 'rag');
       if (rag <= 0) {
         return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou need a rag to clean graffiti.');
