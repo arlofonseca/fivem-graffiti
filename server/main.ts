@@ -74,7 +74,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
     const id: number | undefined = (rowsChanged as any).insertId;
     if (!id) return;
 
-    const graffiti: GraffitiTag = {
+    const data: GraffitiTag = {
       id: id,
       creator_id: identifier,
       coords: coordsStr,
@@ -86,7 +86,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
       created_date: createdDate,
     };
 
-    graffitiTags[id] = graffiti;
+    graffitiTags[id] = data;
     emitNet('fivem-graffiti:client:createGraffitiTag', -1, id, coords, dimension, text, font, size, hex);
     sendChatMessage(source, '^#5e81acYou have successfully created a Graffiti Tag. Use ^#ffffff/cleangraffiti ^#5e81acto remove it');
   } catch (error) {
@@ -118,6 +118,14 @@ async function cleanNearestGraffiti(source: number): Promise<void> {
     }
   }
 
+  // @ts-ignore
+  if (!isAdmin(source, group)) {
+    const rag: number = exports.ox_inventory.GetItemCount(source, 'rag');
+    if (rag <= 0) {
+      return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou need a rag to clean graffiti.');
+    }
+  }
+
   if (closestGraffiti) {
     try {
       const rowsChanged: unknown = await db.deleteGraffiti(closestGraffiti.id);
@@ -138,7 +146,7 @@ async function cleanNearestGraffiti(source: number): Promise<void> {
 async function nearbyGraffiti(source: number): Promise<void> {
   // @ts-ignore
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
-  const nearbyGraffitiIds: number[] = [];
+  const nearbyGraffiti: number[] = [];
 
   for (const id in graffitiTags) {
     const graffiti: GraffitiTag = graffitiTags[id];
@@ -151,20 +159,19 @@ async function nearbyGraffiti(source: number): Promise<void> {
     );
 
     if (distance < 50) {
-      nearbyGraffitiIds.push(graffiti.id);
+      nearbyGraffiti.push(graffiti.id);
     }
   }
 
-  if (nearbyGraffitiIds.length === 0) {
+  if (nearbyGraffiti.length === 0) {
     return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou are not near any active graffiti tags.');
   }
 
   sendChatMessage(source, '^#5e81ac--------- ^#ffffffNearby Graffiti ^#5e81ac---------');
 
-  for (const id of nearbyGraffitiIds) {
-    const marker: GraffitiTag = graffitiTags[id];
-    const message = (`[${marker.created_date}] Graffiti #${marker.id}: Created by: ${marker.creator_id} | Location: ${marker.coords} | Dimension: ${marker.dimension} | Text: ${marker.text} | Font: ${marker.font} | Size: ${marker.size} | Hex: ${marker.hex}`);
-    sendChatMessage(source, message);
+  for (const id of nearbyGraffiti) {
+    const data: GraffitiTag = graffitiTags[id];
+    sendChatMessage(source, `^#ffffffGraffiti ID: ^#5e81ac${data.id} ^#ffffff| Created by: ^#5e81ac${data.creator_id} ^#ffffff| Location: ^#5e81ac${data.coords} ^#ffffff| Dimension: ^#5e81ac${data.dimension} ^#ffffff| Text: ^#5e81ac${data.text} ^#ffffff| Font: ^#5e81ac${data.font} ^#ffffff| Size: ^#5e81ac${data.size} ^#ffffff| Hex: ^#5e81ac${data.hex}`);
   }
 }
 
@@ -183,14 +190,6 @@ async function deleteGraffitiTag(source: number, args: { graffitiId: number }): 
     // @ts-ignore
     if (data.creator_id !== identifier && !isAdmin(source, group)) {
       return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou cannot delete a Graffiti Tag that you did not create.');
-    }
-
-    // @ts-ignore
-    if (!isAdmin(source, group)) {
-      const rag: number = exports.ox_inventory.GetItemCount(source, 'rag');
-      if (rag <= 0) {
-        return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou need a rag to clean graffiti.');
-      }
     }
 
     const rowsChanged: unknown = await db.deleteGraffiti(graffitiId);
@@ -222,14 +221,14 @@ async function massRemoveGraffiti(source: number, args: { radius: number; includ
   const remove: GraffitiTag[] = [];
 
   for (const id in graffitiTags) {
-    const graffiti: GraffitiTag = graffitiTags[id];
-    const graffitiCoords: number[] = JSON.parse(graffiti.coords);
+    const data: GraffitiTag = graffitiTags[id];
+    const graffitiCoords: number[] = JSON.parse(data.coords);
 
-    if (graffiti.dimension !== bucket) continue;
+    if (data.dimension !== bucket) continue;
 
     const distance: number = getDistance(coords, graffitiCoords);
-    if (distance <= radius && (includeAdmin || graffiti.creator_id === identifier)) {
-      remove.push(graffiti);
+    if (distance <= radius && (includeAdmin || data.creator_id === identifier)) {
+      remove.push(data);
     }
   }
 
