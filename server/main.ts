@@ -60,9 +60,9 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
     const coordsStr: string = JSON.stringify(coords);
     // @ts-ignore
     const dimension: number = GetPlayerRoutingBucket(source);
-    const font: number = parseInt(args.font.toString(), 10);
-    const size: number = parseInt(args.size.toString(), 10);
-    const hex: string = args.hex;
+    const font: number = args.font;
+    const size: number = args.size;
+    const hex: string = `#${(args.hex || '').replace('#', '')}`;
     const createdDate = new Date();
 
     const rowsChanged: unknown = await db.saveGraffiti(identifier, coordsStr, dimension, text, font, size, hex);
