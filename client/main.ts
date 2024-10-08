@@ -1,20 +1,8 @@
 import * as Cfx from '@nativewrappers/client';
 import lib, { cache, Point, triggerServerCallback } from '@overextended/ox_lib/client';
+import { Graffiti } from '../@types/Graffiti';
 import * as config from '../config.json';
 import { calculateRotationFromNormal, getDirectionFromRotation, getRaycast, hexToRgb, netEvent } from './utils';
-
-interface Graffiti {
-  id: number;
-  creator_id: string;
-  coords: string;
-  dimension: number;
-  text: string;
-  font: number;
-  size: number;
-  hex: string;
-  created_date: Date;
-  displayed: boolean;
-}
 
 const createdGraffiti: Record<number, Graffiti> = {};
 const drawGraffiti: Record<number, boolean> = {};
@@ -81,20 +69,20 @@ netEvent('fivem-graffiti:client:deleteGraffitiTag', (id: number) => {
   delete drawGraffiti[id];
 });
 
-async function sprayStart(coords: Cfx.Vector3, text: string, size: number, font: number, hex: string) {
+async function sprayStart(coords: Cfx.Vector3, text: string, size: number, font: number, hex: string): Promise<void> {
   const ptxDict = 'scr_recartheft';
   const ptxName = 'scr_wheel_burnout';
-  const obj = sprayObject();
+  const obj: number = sprayObject();
 
   await lib.requestAnimDict('anim@amb@business@weed@weed_inspecting_lo_med_hi@');
   await lib.requestNamedPtfxAsset(ptxDict);
 
   TaskPlayAnim(cache.ped, 'anim@amb@business@weed@weed_inspecting_lo_med_hi@', 'weed_spraybottle_stand_spraying_01_inspector', 1.0, 1.0, -1, 49, 0, false, false, false);
 
-  const rgbaColor = hexToRgb(hex);
+  const rgbaColor: { r: number; g: number; b: number } | null = hexToRgb(hex);
   if (!rgbaColor) return;
 
-  let alphaValue = 0;
+  let alphaValue: number = 0;
   const particleInterval = setInterval(() => {
     if (alphaValue >= 255) {
       clearInterval(particleInterval);
@@ -118,7 +106,7 @@ async function sprayStart(coords: Cfx.Vector3, text: string, size: number, font:
 }
 
 function sprayObject() {
-  const obj = CreateObject(GetHashKey('ng_proc_spraycan01b'), 0, 0, 0, false, false, false);
+  const obj: number = CreateObject(GetHashKey('ng_proc_spraycan01b'), 0, 0, 0, false, false, false);
   const objPosition = new Cfx.Vector3(0.07, 0.03, -0.07);
   const objRotation = new Cfx.Vector3(15, 45, 10);
 
@@ -133,14 +121,14 @@ on('onClientResourceStart', (resourceName: string) => {
   emitNet('fivem-graffiti:server:loadGraffitiTags');
 });
 
-setInterval(async () => {
+setInterval(async (): Promise<void> => {
   const dimension: number | void = await triggerServerCallback('fivem-graffiti:server:getRoutingBucket', null);
   if (!dimension) return;
 
   playerBucket = dimension;
 }, 1000);
 
-setInterval(async () => {
+setInterval(async (): Promise<void> => {
   for (const id in drawGraffiti) {
     if (drawGraffiti[id]) {
       const graffiti = createdGraffiti[id];

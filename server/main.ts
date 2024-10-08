@@ -1,22 +1,11 @@
 import * as Cfx from '@nativewrappers/fivem-server';
 import { addCommand, onClientCallback } from '@overextended/ox_lib/server';
+import { Graffiti } from '../@types/Graffiti';
 import * as config from '../config.json';
 import * as db from './db';
 import { getDistance, isAdmin, sendChatMessage, } from './utils';
 
-export interface GraffitiTag {
-  id: number;
-  creator_id: string;
-  coords: string;
-  dimension: number;
-  text: string;
-  font: number;
-  size: number;
-  hex: string;
-  created_date: Date;
-}
-
-const graffitiTags: Record<number, GraffitiTag> = {};
+const graffitiTags: Record<number, Graffiti> = {};
 const spraycanDurability: Record<number, number> = {};
 
 const group: string = `group.${config.ace_group}`;
@@ -74,7 +63,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
     const id: number | undefined = (rowsChanged as any).insertId;
     if (!id) return;
 
-    const data: GraffitiTag = {
+    const data: Graffiti = {
       id: id,
       creator_id: identifier,
       coords: coordsStr,
@@ -84,6 +73,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
       size: size,
       hex: hex,
       created_date: createdDate,
+      displayed: true
     };
 
     graffitiTags[id] = data;
@@ -98,7 +88,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
 // @todo: play cleaning animation client side
 async function cleanNearestGraffiti(source: number): Promise<void> {
   let cleanDistance: number = 5;
-  let closestGraffiti: GraffitiTag | null = null;
+  let closestGraffiti: Graffiti | null = null;
 
   // @ts-ignore
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
@@ -106,7 +96,7 @@ async function cleanNearestGraffiti(source: number): Promise<void> {
   const bucket: number = GetPlayerRoutingBucket(source);
 
   for (const id in graffitiTags) {
-    const graffiti: GraffitiTag = graffitiTags[id];
+    const graffiti: Graffiti = graffitiTags[id];
     const graffitiCoords: number[] = JSON.parse(graffiti.coords);
 
     if (graffiti.dimension !== bucket) continue;
@@ -149,7 +139,7 @@ async function nearbyGraffiti(source: number): Promise<void> {
   const nearbyGraffiti: number[] = [];
 
   for (const id in graffitiTags) {
-    const graffiti: GraffitiTag = graffitiTags[id];
+    const graffiti: Graffiti = graffitiTags[id];
 
     const graffitiCoords = JSON.parse(graffiti.coords);
     const distance: number = Math.sqrt(
@@ -170,7 +160,7 @@ async function nearbyGraffiti(source: number): Promise<void> {
   sendChatMessage(source, '^#5e81ac--------- ^#ffffffNearby Graffiti ^#5e81ac---------');
 
   for (const id of nearbyGraffiti) {
-    const data: GraffitiTag = graffitiTags[id];
+    const data: Graffiti = graffitiTags[id];
     sendChatMessage(source, `^#ffffffGraffiti ID: ^#5e81ac${data.id} ^#ffffff| Created by: ^#5e81ac${data.creator_id} ^#ffffff| Location: ^#5e81ac${data.coords} ^#ffffff| Dimension: ^#5e81ac${data.dimension} ^#ffffff| Text: ^#5e81ac${data.text} ^#ffffff| Font: ^#5e81ac${data.font} ^#ffffff| Size: ^#5e81ac${data.size} ^#ffffff| Hex: ^#5e81ac${data.hex}`);
   }
 }
@@ -181,7 +171,7 @@ async function deleteGraffitiTag(source: number, args: { graffitiId: number }): 
   const graffitiId: number = args.graffitiId;
 
   try {
-    const data: GraffitiTag = graffitiTags[graffitiId];
+    const data: Graffiti = graffitiTags[graffitiId];
     if (!data) {
       sendChatMessage(source, '^#d73232ERROR ^#ffffffNo Graffiti Tag found with the specified ID.');
       return;
@@ -218,10 +208,10 @@ async function massRemoveGraffiti(source: number, args: { radius: number; includ
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
   // @ts-ignore
   const bucket: number = GetPlayerRoutingBucket(source);
-  const remove: GraffitiTag[] = [];
+  const remove: Graffiti[] = [];
 
   for (const id in graffitiTags) {
-    const data: GraffitiTag = graffitiTags[id];
+    const data: Graffiti = graffitiTags[id];
     const graffitiCoords: number[] = JSON.parse(data.coords);
 
     if (data.dimension !== bucket) continue;
@@ -267,11 +257,11 @@ on('onResourceStart', async (resourceName: string): Promise<void> => {
 
   await Cfx.Delay(100);
 
-  const graffiti: GraffitiTag[] | undefined = await db.loadGraffiti();
+  const graffiti: Graffiti[] | undefined = await db.loadGraffiti();
   if (!graffiti) return;
 
   for (let i: number = 0; i < graffiti.length; i++) {
-    const data: GraffitiTag = graffiti[i];
+    const data: Graffiti = graffiti[i];
     graffitiTags[data.id] = data;
   }
 });
@@ -306,12 +296,10 @@ addCommand(['graffiti', 'grf'], createGraffitiTag, {
 });
 
 addCommand(['cleangraffiti', 'cgrf'], cleanNearestGraffiti, {
-  params: [],
   restricted: false,
 });
 
 addCommand(['nearbygraffitis', 'ng'], nearbyGraffiti, {
-  params: [],
   restricted: restrictedGroup,
 });
 
@@ -321,6 +309,7 @@ addCommand(['removegraffiti', 'rg'], deleteGraffitiTag, {
       name: 'graffitiId',
       help: 'The id of the graffiti tag to clean',
       paramType: 'number',
+      optional: false,
     },
   ],
 });

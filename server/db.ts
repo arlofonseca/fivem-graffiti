@@ -1,5 +1,5 @@
 import { oxmysql } from '@overextended/oxmysql';
-import { GraffitiTag } from './main';
+import { Graffiti } from '../@types/Graffiti';
 
 export async function createGraffitiTable(): Promise<void> {
   try {
@@ -22,9 +22,9 @@ export async function createGraffitiTable(): Promise<void> {
   }
 }
 
-export async function fetchGraffitiTable(): Promise<GraffitiTag[]> {
+export async function fetchGraffitiTable(): Promise<Graffiti[]> {
   try {
-    return await oxmysql.query<GraffitiTag[]>('SELECT * FROM graffiti');
+    return await oxmysql.query<Graffiti[]>('SELECT * FROM graffiti');
   } catch (error) {
     console.error('fetchGraffitiTable:', error);
     await createGraffitiTable();
@@ -58,10 +58,10 @@ export async function countGraffiti(identifier: string | number): Promise<number
   }
 }
 
-export async function loadGraffiti(source?: number): Promise<GraffitiTag[] | undefined> {
+export async function loadGraffiti(source?: number): Promise<Graffiti[] | undefined> {
   try {
-    const graffiti: GraffitiTag[] = await fetchGraffitiTable();
-    graffiti.forEach((graffiti: GraffitiTag) => {
+    const graffiti: Graffiti[] = await fetchGraffitiTable();
+    graffiti.forEach((graffiti: Graffiti) => {
       const coords: any = JSON.parse(graffiti.coords);
       emitNet('fivem-graffiti:client:createGraffitiTag', source || -1, graffiti.creator_id, coords, graffiti.dimension, graffiti.text, graffiti.font, graffiti.size, graffiti.hex);
     });
