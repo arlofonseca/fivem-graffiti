@@ -1,5 +1,5 @@
 import * as Cfx from '@nativewrappers/client';
-import lib, { cache, Point, triggerServerCallback } from '@overextended/ox_lib/client';
+import lib, { cache, Point } from '@overextended/ox_lib/client';
 import { Graffiti } from '../@types/Graffiti';
 import * as config from '../config.json';
 import { calculateRotationFromNormal, getDirectionFromRotation, getRaycast, hexToRgb, netEvent } from './utils';
@@ -26,15 +26,15 @@ netEvent('fivem-graffiti:client:createGraffitiTag', (id: number, creator_id: str
   createdGraffiti[id] = graffiti;
   drawGraffiti[id] = false;
 
-  const vec = Cfx.Vector3.fromArray(JSON.parse(graffiti.coords));
+  const vec: Cfx.Vector3 = Cfx.Vector3.fromArray(JSON.parse(graffiti.coords));
   sprayStart(vec, text, font, size, hex);
 
   points[id] = new Point({
     coords: [vec.x, vec.y, vec.z],
     distance: config.graffiti_distance,
     nearby: async (): Promise<void> => {
-      const plyCoords: Cfx.Vector3 = Cfx.Game.PlayerPed.Position;
-      const distance: number = plyCoords.distance(vec);
+      const playerCoords: Cfx.Vector3 = Cfx.Game.PlayerPed.Position;
+      const distance: number = playerCoords.distance(vec);
       if (playerBucket === graffiti.dimension && distance <= config.graffiti_distance) {
         drawGraffiti[id] = true;
 
@@ -50,10 +50,10 @@ netEvent('fivem-graffiti:client:createGraffitiTag', (id: number, creator_id: str
       }
     },
     onEnter: () => {
-      console.log(`Entered range of point ${id}`);
+      console.log(`Entered range of Graffiti Tag '#${id}'`);
     },
     onExit: () => {
-      console.log(`Left range of point ${id}`);
+      console.log(`Left range of Graffiti Tag '#${id}'`);
       graffiti.displayed = false;
       drawGraffiti[id] = false;
     },
@@ -82,10 +82,10 @@ async function sprayStart(coords: Cfx.Vector3, text: string, size: number, font:
   const rgbaColor: { r: number; g: number; b: number } | null = hexToRgb(hex);
   if (!rgbaColor) return;
 
-  let alphaValue: number = 0;
-  const particleInterval = setInterval(() => {
-    if (alphaValue >= 255) {
-      clearInterval(particleInterval);
+  let value: number = 0;
+  const interval = setInterval(() => {
+    if (value >= 255) {
+      clearInterval(interval);
       if (DoesEntityExist(obj)) {
         DeleteObject(obj);
       }
@@ -99,7 +99,7 @@ async function sprayStart(coords: Cfx.Vector3, text: string, size: number, font:
     SetParticleFxNonLoopedColour(rgbaColor.r / 255, rgbaColor.g / 255, rgbaColor.b / 255);
     StartNetworkedParticleFxNonLoopedAtCoord(ptxName, ptxCoords.x, ptxCoords.y, ptxCoords.z + 1.5, 0, 0, 0, size * 0.5, false, false, true);
 
-    alphaValue++;
+    value++;
   }, 200);
 
   console.log(coords, text, size, font, hex)
@@ -122,7 +122,8 @@ on('onClientResourceStart', (resourceName: string) => {
 });
 
 setInterval(async (): Promise<void> => {
-  const dimension: number | void = await triggerServerCallback('fivem-graffiti:server:getRoutingBucket', null);
+  const dimension = emitNet('fivem-graffiti:server:getRoutingBucket');
+  // @ts-ignore
   if (!dimension) return;
 
   playerBucket = dimension;

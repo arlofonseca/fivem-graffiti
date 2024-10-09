@@ -9,12 +9,14 @@ export function netEvent<T extends any[]>(event: string, fn: (...args: T) => voi
 }
 
 export function hexToRgb(code: string) {
-  const hex: string = code.toLowerCase();
-  const result: RegExpExecArray | null = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  let result: RegExpExecArray | null = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(code);
   if (!result) return null;
 
-  const [_, r, g, b] = result;
-  return { r: parseInt(r, 16), g: parseInt(g, 16), b: parseInt(b, 16) };
+  let r: number = parseInt(result[1], 16);
+  let g: number = parseInt(result[2], 16);
+  let b: number = parseInt(result[3], 16);
+
+  return { r: r, g: g, b: b };
 }
 
 export function getDirectionFromRotation(rotation: { z: number; x: number }) {
