@@ -39,25 +39,25 @@ Use `pnpm watch` to rebuild whenever a file is modified.
 
 ### Commands
 
-#### `/graffiti` _(alias: `/grf`)_
+#### `/graffiti [text] [font] [size] [hex]` _(alias: `/grf`)_
 
-- Create graffiti at any location. This command allows you to place a piece of graffiti at a specified position, enabling you to mark and decorate the world.
+- Creates a graffiti tag at any location.
 
 #### `/cleangraffiti` _(alias: `/cgrf`)_
 
-- Clean and remove the nearest graffiti. Use this command to erase the closest piece of graffiti.
+- Clean and remove the nearest graffiti tag.
 
 #### [ADMIN] `/nearbygraffitis [radius]` _(alias: `/ng`)_
 
-- List all active nearby graffiti. This command scans the surrounding area within a specified radius to identify all active pieces of graffiti. It provides detailed information including the unique identifier, text content, position, and the owner of each graffiti piece.
+- Lists all active nearby graffiti, providing detailed information including the owner, unique identifier, location, text, size, and color.
 
 #### [ADMIN] `/removegraffiti [id]` _(alias: `/rg`)_
 
-- Remove graffiti from the database and the world using its unique identifier. This command allows you to permanently delete a specific piece of graffiti by referencing its unique identifier, ensuring it is removed from both the game world and the database.
+- Removes graffiti from the database and the world. Allows you to permanently delete a specific piece of graffiti by referencing its unique identifier.
 
-#### [ADMIN] `/massremovegraffiti [radius] [include admins 0/1]` _(alias: `/mrg`)_
+#### [ADMIN] `/massremovegraffiti [radius] [include admins 0/1]` _(alias: `/removegraffitis`)_
 
-- Mass remove graffiti from the database and the world within a specified distance. This powerful command enables the removal of multiple graffiti pieces within a certain range. If the second optional parameter is set to `1`, it will also delete graffiti created by admins.
+- Mass removes graffiti from the database and the world within a specified distance. Enables the removal of multiple graffiti tags within a certain range. If the second optional parameter is set to `1`, it will also delete graffiti created by admins.
 
 ## Suppport
 
