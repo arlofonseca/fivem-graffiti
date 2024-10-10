@@ -3,7 +3,7 @@ import { addCommand } from '@overextended/ox_lib/server';
 import { Graffiti } from '../@types/Graffiti';
 import * as config from '../config.json';
 import * as db from './db';
-import { getDistance, isAdmin, sendChatMessage, } from './utils';
+import { getArea, getDistance, isAdmin, sendChatMessage, } from './utils';
 
 const graffitiTags: Record<number, Graffiti> = {};
 const spraycanDurability: Record<number, number> = {};
@@ -53,6 +53,10 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
     const size: number = args.size;
     const hex: string = `#${(args.hex || '').replace('#', '')}`;
     const createdDate = new Date();
+
+    if (getArea({ x: coords[0], y: coords[1], z: coords[2] }, config.restricted_areas)) {
+      return sendChatMessage(source, '^#d73232You cannot place graffiti in this area!');
+    }
 
     const rowsChanged: unknown = await db.saveGraffiti(identifier, coordsStr, dimension, text, font, size, hex);
     if (!rowsChanged || (typeof rowsChanged === 'number' && rowsChanged === 0)) {
@@ -144,12 +148,7 @@ async function nearbyGraffiti(source: number): Promise<void> {
   for (const id in graffitiTags) {
     const graffiti: Graffiti = graffitiTags[id];
     const graffitiCoords = JSON.parse(graffiti.coords);
-    const distance: number = Math.sqrt(
-      Math.pow(graffitiCoords[0] - coords[0], 2) +
-      Math.pow(graffitiCoords[1] - coords[1], 2) +
-      Math.pow(graffitiCoords[2] - coords[2], 2)
-    );
-
+    const distance: number = Math.sqrt(Math.pow(graffitiCoords[0] - coords[0], 2) + Math.pow(graffitiCoords[1] - coords[1], 2) + Math.pow(graffitiCoords[2] - coords[2], 2));
     if (distance < 50) {
       nearbyGraffiti.push(graffiti.id);
     }
@@ -224,7 +223,7 @@ async function massRemoveGraffiti(source: number, args: { radius: number; includ
   }
 
   if (remove.length === 0) {
-    return sendChatMessage(source, `^#d73232ERROR ^#ffffffNo graffiti found within a radius of ${radius} units and in dimension ${bucket}.`);
+    return sendChatMessage(source, `^#d73232ERROR ^#ffffffNo graffiti found within a radius of ${radius} units in dimension ${bucket}.`);
   }
 
   for (const graffiti of remove) {
@@ -241,11 +240,6 @@ async function massRemoveGraffiti(source: number, args: { radius: number; includ
 
   sendChatMessage(source, `^#5e81ac[ADMIN] ^#ffffffYou removed ${remove.length} graffiti(s) in the radius of ${radius} units!`);
 }
-
-onNet('fivem-graffiti:server:getRoutingBucket', (source: number) => {
-  // @ts-ignore
-  return GetPlayerRoutingBucket(source);
-});
 
 onNet('fivem-graffiti:server:loadGraffitiTags', () => {
   db.loadGraffiti(source);

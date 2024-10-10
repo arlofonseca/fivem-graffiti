@@ -120,20 +120,3 @@ on('onClientResourceStart', (resourceName: string) => {
 
   emitNet('fivem-graffiti:server:loadGraffitiTags');
 });
-
-setInterval(async (): Promise<void> => {
-  const dimension = emitNet('fivem-graffiti:server:getRoutingBucket');
-  // @ts-ignore
-  if (!dimension) return;
-
-  playerBucket = dimension;
-}, 1000);
-
-setInterval(async (): Promise<void> => {
-  for (const id in drawGraffiti) {
-    if (drawGraffiti[id]) {
-      const graffiti = createdGraffiti[id];
-      // @todo
-    }
-  }
-});
