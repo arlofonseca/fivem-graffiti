@@ -1,3 +1,7 @@
+export function hasItem(source: number, item: string) {
+  return exports.ox_inventory.GetItemCount(source, item) > 0;
+}
+
 export function sendChatMessage(source: number, message: string) {
   return exports.chat.addMessage(source, message);
 }

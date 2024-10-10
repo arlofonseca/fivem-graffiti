@@ -62,7 +62,7 @@ export async function loadGraffiti(source?: number): Promise<Graffiti[] | undefi
   try {
     const graffiti: Graffiti[] = await fetchGraffitiTable();
     graffiti.forEach((graffiti: Graffiti) => {
-      const coords: any = JSON.parse(graffiti.coords);
+      const coords: number[] = JSON.parse(graffiti.coords);
       emitNet('fivem-graffiti:client:createGraffitiTag', source || -1, graffiti.creator_id, coords, graffiti.dimension, graffiti.text, graffiti.font, graffiti.size, graffiti.hex);
     });
     console.log(`Loaded ${graffiti.length} Graffiti Tags from the database.`);

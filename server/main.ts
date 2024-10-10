@@ -3,7 +3,7 @@ import { addCommand } from '@overextended/ox_lib/server';
 import { Graffiti } from '../@types/Graffiti';
 import * as config from '../config.json';
 import * as db from './db';
-import { getArea, getDistance, isAdmin, sendChatMessage, } from './utils';
+import { getArea, getDistance, hasItem, isAdmin, sendChatMessage, } from './utils';
 
 const graffitiTags: Record<number, Graffiti> = {};
 const spraycanDurability: Record<number, number> = {};
@@ -13,25 +13,21 @@ const restrictedGroup: string | undefined = config.admin_only ? group : undefine
 
 async function createGraffitiTag(source: number, args: { text: string; font: number; size: number; hex: string }): Promise<void> {
   // @ts-ignore
-  const identifier: string = GetPlayerIdentifierByType(source, 'license2');
+  const identifier: string = GetPlayerIdentifierByType(source, config.identifier_type);
   const activeGraffiti: number = await db.countGraffiti(identifier);
 
   if (activeGraffiti >= config.max_graffiti_tags) {
     return sendChatMessage(source, `^#d73232ERROR ^#ffffffYou cannot have more than ${config.max_graffiti_tags} active Graffiti Tags at a time.`);
   }
 
-  const spraycan: number = exports.ox_inventory.GetItemCount(source, config.spraycan_item);
-  if (spraycan <= 0) {
-    return sendChatMessage(source, '^#d73232You do not own a Spraycan!');
+  if (!hasItem(source, config.spraycan_item)) {
+    sendChatMessage(source, '^#d73232ERROR ^#ffffffYou do not own a Spraycan!');
+    return;
   }
 
   try {
     if (!spraycanDurability[source]) {
       spraycanDurability[source] = config.usage_limit;
-    }
-
-    if (spraycanDurability[source] <= 0) {
-      return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou have no more spray left inside of your spray can.');
     }
 
     spraycanDurability[source]--;
@@ -114,9 +110,9 @@ async function cleanNearestGraffiti(source: number): Promise<void> {
 
   // @ts-ignore
   if (!isAdmin(source, group)) {
-    const rag: number = exports.ox_inventory.GetItemCount(source, config.clean_item);
-    if (rag <= 0) {
-      return sendChatMessage(source, '^#d73232You do not own a Rag!');
+    if (!hasItem(source, config.clean_item)) {
+      sendChatMessage(source, '^#d73232ERROR ^#ffffffYou do not own a Rag!');
+      return;
     }
   }
 
@@ -124,7 +120,7 @@ async function cleanNearestGraffiti(source: number): Promise<void> {
     try {
       // @todo: stop the cleaning process if `/abortclean` is executed
       sendChatMessage(source, '^#5e81acYou are cleaning the wall use ^#c78946/abortclean ^#5e81acto cancel the action!');
-      await Cfx.Delay(100)
+      await Cfx.Delay(100);
       const rowsChanged: unknown = await db.deleteGraffiti(closestGraffiti.id);
       if (rowsChanged && (typeof rowsChanged === 'number' && rowsChanged > 0)) {
         delete graffitiTags[closestGraffiti.id];
@@ -147,7 +143,7 @@ async function nearbyGraffiti(source: number): Promise<void> {
 
   for (const id in graffitiTags) {
     const graffiti: Graffiti = graffitiTags[id];
-    const graffitiCoords = JSON.parse(graffiti.coords);
+    const graffitiCoords: number[] = JSON.parse(graffiti.coords);
     const distance: number = Math.sqrt(Math.pow(graffitiCoords[0] - coords[0], 2) + Math.pow(graffitiCoords[1] - coords[1], 2) + Math.pow(graffitiCoords[2] - coords[2], 2));
     if (distance < 50) {
       nearbyGraffiti.push(graffiti.id);
@@ -168,7 +164,7 @@ async function nearbyGraffiti(source: number): Promise<void> {
 
 async function deleteGraffitiTag(source: number, args: { graffitiId: number }): Promise<void> {
   // @ts-ignore
-  const identifier: string = GetPlayerIdentifierByType(source, 'license2');
+  const identifier: string = GetPlayerIdentifierByType(source, config.identifier_type);
   const graffitiId: number = args.graffitiId;
 
   try {
@@ -201,7 +197,7 @@ async function deleteGraffitiTag(source: number, args: { graffitiId: number }): 
 
 async function massRemoveGraffiti(source: number, args: { radius: number; includeAdmin: number }): Promise<void> {
   // @ts-ignore
-  const identifier: string = GetPlayerIdentifierByType(source, 'license2');
+  const identifier: string = GetPlayerIdentifierByType(source, config.identifier_type);
   // @ts-ignore
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
   const radius: number = args.radius;
