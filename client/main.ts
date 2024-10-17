@@ -70,12 +70,10 @@ netEvent('fivem-graffiti:client:deleteGraffitiTag', (id: number) => {
 });
 
 async function sprayStart(coords: Cfx.Vector3, text: string, size: number, font: number, hex: string): Promise<void> {
-  const ptxDict = 'scr_recartheft';
-  const ptxName = 'scr_wheel_burnout';
   const obj: number = sprayObject();
 
   await lib.requestAnimDict('anim@amb@business@weed@weed_inspecting_lo_med_hi@');
-  await lib.requestNamedPtfxAsset(ptxDict);
+  await lib.requestNamedPtfxAsset('scr_recartheft');
 
   TaskPlayAnim(cache.ped, 'anim@amb@business@weed@weed_inspecting_lo_med_hi@', 'weed_spraybottle_stand_spraying_01_inspector', 1.0, 1.0, -1, 49, 0, false, false, false);
 
@@ -93,16 +91,11 @@ async function sprayStart(coords: Cfx.Vector3, text: string, size: number, font:
       return;
     }
 
-    const ptxCoords = { x: coords.x, y: coords.y, z: coords.z };
-
-    UseParticleFxAsset(ptxDict);
+    UseParticleFxAsset('scr_recartheft');
     SetParticleFxNonLoopedColour(rgbaColor.r / 255, rgbaColor.g / 255, rgbaColor.b / 255);
-    StartNetworkedParticleFxNonLoopedAtCoord(ptxName, ptxCoords.x, ptxCoords.y, ptxCoords.z + 1.5, 0, 0, 0, size * 0.5, false, false, true);
-
+    StartNetworkedParticleFxNonLoopedAtCoord('scr_wheel_burnout', coords.x, coords.y, coords.z + 1.5, 0, 0, 0, size * 0.5, false, false, true);
     value++;
   }, 200);
-
-  console.log(coords, text, size, font, hex)
 }
 
 function sprayObject() {
