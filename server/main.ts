@@ -206,15 +206,13 @@ async function massRemoveGraffiti(source: number, args: { radius: number; includ
   const bucket: number = GetPlayerRoutingBucket(source);
   const remove: Graffiti[] = [];
 
-  for (const id in graffitiTags) {
-    const data: Graffiti = graffitiTags[id];
-    const graffitiCoords: number[] = JSON.parse(data.coords);
+  for (const graffiti of Object.values(graffitiTags)) {
+    if (graffiti.dimension !== bucket) continue;
 
-    if (data.dimension !== bucket) continue;
-
+    const graffitiCoords: number[] = JSON.parse(graffiti.coords);
     const distance: number = getDistance(coords, graffitiCoords);
-    if (distance <= radius && (includeAdmin || data.creator_id === identifier)) {
-      remove.push(data);
+    if (distance <= radius && (includeAdmin || graffiti.creator_id === identifier)) {
+      remove.push(graffiti);
     }
   }
 
@@ -222,17 +220,19 @@ async function massRemoveGraffiti(source: number, args: { radius: number; includ
     return sendChatMessage(source, `^#d73232ERROR ^#ffffffNo graffiti found within a radius of ${radius} units in dimension ${bucket}.`);
   }
 
-  for (const graffiti of remove) {
+  const success = remove.map(async (graffiti) => {
     try {
       const rowsChanged: unknown = await db.deleteGraffiti(graffiti.id);
-      if (rowsChanged && (typeof rowsChanged === 'number' && rowsChanged > 0)) {
+      if (!rowsChanged || (typeof rowsChanged === 'number' && rowsChanged > 0)) {
         delete graffitiTags[graffiti.id];
         emitNet('fivem-graffiti:client:deleteGraffitiTag', -1, graffiti.id);
       }
     } catch (error) {
       console.error(`Failed to remove graffiti tag with ID ${graffiti.id}:`, error);
     }
-  }
+  });
+
+  await Promise.all(success);
 
   sendChatMessage(source, `^#5e81ac[ADMIN] ^#ffffffYou removed ${remove.length} graffiti(s) in the radius of ${radius} units!`);
 }
