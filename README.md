@@ -29,7 +29,7 @@ A standalone 3D-Graffiti system which gives the ability to tag walls and objects
 3. Enter `node --version` to verify the installation.
 4. Run `npm install -g pnpm` to globally install the package.
 5. Download or clone the repository with `git clone https://github.com/arlofonseca/fivem-graffiti`.
-6. Execute the queries found in `graffiti.sql` in your database.
+6. Execute the queries found in `install.sql` in your database.
 7. Install all dependencies with `pnpm i`.
 8. Build the resource with `pnpm build`.
 
@@ -41,11 +41,11 @@ Use `pnpm watch` to rebuild whenever a file is modified.
 
 #### `/graffiti [text] [font] [size] [hex]` _(alias: `/grf`)_
 
-- Creates a graffiti tag at any location.
+- Creates a graffiti tag.
 
 #### `/cleangraffiti` _(alias: `/cgrf`)_
 
-- Clean and remove the nearest graffiti tag.
+- Cleans and removes the nearest graffiti.
 
 #### [ADMIN] `/nearbygraffitis [radius]` _(alias: `/ng`)_
 
@@ -53,11 +53,19 @@ Use `pnpm watch` to rebuild whenever a file is modified.
 
 #### [ADMIN] `/removegraffiti [id]` _(alias: `/rg`)_
 
-- Removes graffiti from the database and the world. Allows you to permanently delete a specific piece of graffiti by referencing its unique identifier.
+- Removes graffiti from both the database and world.
 
 #### [ADMIN] `/massremovegraffiti [radius] [include admins 0/1]` _(alias: `/removegraffitis`)_
 
-- Mass removes graffiti from the database and the world within a specified distance. Enables the removal of multiple graffiti tags within a certain range. If the second optional parameter is set to `1`, it will also delete graffiti created by admins.
+- Mass removes graffiti from both the database and world within the specified radius. If the second optional parameter is set to `1`, it will also delete graffiti created by admins.
+
+#### [ADMIN] `/addrestrictedzone [radius]` _(alias: `/arz`)_
+
+- Restricts graffiti from being placed within the specified radius.
+
+#### [ADMIN] `/removerestrictedzone [zoneId]` _(alias: `/rrz`)_
+
+- Removes a zone from the database.
 
 ## Suppport
 
