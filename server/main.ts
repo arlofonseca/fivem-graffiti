@@ -324,7 +324,7 @@ on('onResourceStart', async (resourceName: string): Promise<void> => {
     graffitiTags[data.id] = data;
   }
 
-  const zones: Array<{ creator_id: string; coords: number[]; dimension: number; radius: number }> | undefined = await db.loadRestrictedZones();
+  const zones: { creator_id: string; coords: number[]; dimension: number; radius: number }[] | undefined = await db.loadRestrictedZones();
   if (!zones) return;
 });
 

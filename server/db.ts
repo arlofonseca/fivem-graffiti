@@ -27,10 +27,10 @@ export async function createGraffitiTable(): Promise<void> {
 
 export async function fetchGraffitiTable(): Promise<Graffiti[]> {
   try {
-    await createGraffitiTable();
     return await oxmysql.query<Graffiti[]>('SELECT * FROM graffiti_tags');
   } catch (error) {
     console.error('fetchGraffitiTable:', error);
+    await createGraffitiTable();
     return [];
   }
 }
@@ -96,10 +96,10 @@ export async function createRestrictedZonesTable(): Promise<void> {
 
 export async function fetchRestrictedZonesTable(): Promise<RestrictedZones[]> {
   try {
-    await createRestrictedZonesTable();
     return await oxmysql.query<RestrictedZones[]>('SELECT * FROM graffiti_restricted_zones');
   } catch (error) {
     console.error('fetchRestrictedZonesTable:', error);
+    await createRestrictedZonesTable();
     return [];
   }
 }
