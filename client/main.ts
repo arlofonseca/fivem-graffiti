@@ -39,7 +39,7 @@ netEvent('fivem-graffiti:client:createGraffitiTag', (id: number, creator_id: str
         drawGraffiti[id] = true;
 
         if (distance <= 1.5 && !graffiti.displayed) {
-          // @todo: display graffiti
+          // -- @todo: display graffiti --
           graffiti.displayed = true;
         } else if (distance > 1.5) {
           graffiti.displayed = false;

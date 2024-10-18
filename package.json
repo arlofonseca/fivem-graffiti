@@ -14,18 +14,18 @@
     "url": "https://github.com/arlofonseca/fivem-graffiti.git"
   },
   "bugs": "https://github.com/arlofonseca/fivem-graffiti/issues",
+  "dependencies": {
+    "@nativewrappers/client": "latest",
+    "@nativewrappers/fivem-server": "latest",
+    "@overextended/ox_lib": "latest",
+    "@overextended/oxmysql": "latest"
+  },
   "devDependencies": {
     "@citizenfx/client": "latest",
     "@citizenfx/server": "latest",
     "@types/node": "^22.7.4",
     "esbuild": "^0.24.0",
     "node-fetch": "^3.3.2"
-  },
-  "dependencies": {
-    "@nativewrappers/client": "latest",
-    "@nativewrappers/fivem-server": "latest",
-    "@overextended/ox_lib": "latest",
-    "@overextended/oxmysql": "latest"
   },
   "engines": {
     "node": ">=16.9.1"

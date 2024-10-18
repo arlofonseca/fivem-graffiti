@@ -6,13 +6,5 @@
   "ace_group": "admin",
   "spraycan_item": "spraycan",
   "clean_item": "rag",
-  "usage_limit": 3,
-  "restricted_areas": [
-    {
-      "x": -891.6000,
-      "y": -3008.0176,
-      "z": 14.2836,
-      "radius": 20
-    }
-  ]
+  "usage_limit": 3
 }

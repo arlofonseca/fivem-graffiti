@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS `graffiti_tags` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `creator_id` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `coords` LONGTEXT NOT NULL,
+  `dimension` INT DEFAULT 0,
+  `text` LONGTEXT NOT NULL,
+  `font` INT DEFAULT 0,
+  `size` INT DEFAULT 0,
+  `hex` LONGTEXT NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `graffiti_restricted_zones` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `creator_id` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `coords` LONGTEXT NOT NULL,
+  `dimension` INT DEFAULT 0,
+  `radius` INT DEFAULT 0,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
