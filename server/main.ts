@@ -3,7 +3,7 @@ import { addCommand } from '@overextended/ox_lib/server';
 import { Graffiti } from '../@types/Graffiti';
 import * as config from '../config.json';
 import * as db from './db';
-import { getArea, getDistance, hasItem, isAdmin, sendChatMessage, } from './utils';
+import { getArea, getDistance, getHex, hasItem, isAdmin, sendChatMessage } from './utils';
 
 const graffitiTags: Record<number, Graffiti> = {};
 const spraycanDurability: Record<number, number> = {};
@@ -49,6 +49,10 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
     const size: number = args.size;
     const hex: string = `#${(args.hex || '').replace('#', '')}`;
     const createdDate = new Date();
+
+    if (!getHex(hex)) {
+      return sendChatMessage(source, '^#d73232ERROR ^#ffffffInvalid hex code.');
+    }
 
     if (getArea({ x: coords[0], y: coords[1], z: coords[2] }, config.restricted_areas)) {
       return sendChatMessage(source, '^#d73232You cannot place graffiti in this area!');
@@ -220,7 +224,7 @@ async function massRemoveGraffiti(source: number, args: { radius: number; includ
     return sendChatMessage(source, `^#d73232ERROR ^#ffffffNo graffiti found within a radius of ${radius} units in dimension ${bucket}.`);
   }
 
-  const success = remove.map(async (graffiti) => {
+  const success: Promise<void>[] = remove.map(async (graffiti: Graffiti): Promise<void> => {
     try {
       const rowsChanged: unknown = await db.deleteGraffiti(graffiti.id);
       if (!rowsChanged || (typeof rowsChanged === 'number' && rowsChanged > 0)) {

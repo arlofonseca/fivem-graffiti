@@ -10,6 +10,10 @@ export function isAdmin(source: string, group: string): boolean {
   return IsPlayerAceAllowed(source, group);
 }
 
+export function getHex(hex: string): boolean {
+  return /^#[0-9A-F]{6}$/i.test(hex);
+}
+
 export function getDistance(one: number[], two: number[]): number {
   const x: number = one[0] - two[0];
   const y: number = one[1] - two[1];
