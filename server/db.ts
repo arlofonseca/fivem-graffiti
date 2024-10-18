@@ -133,14 +133,9 @@ export async function getRestrictedZoneById(zoneId: number): Promise<RestrictedZ
 export async function fetchRestrictedZoneCoords(): Promise<{ x: number; y: number; z: number; radius: number }[]> {
   try {
     const zones: RestrictedZones[] = await fetchRestrictedZonesTable();
-    return zones.map(zone => {
+    return zones.map((zone) => {
       const array = JSON.parse(zone.coords);
-      return {
-        x: array[0],
-        y: array[1],
-        z: array[2],
-        radius: zone.radius
-      };
+      return { x: array[0], y: array[1], z: array[2], radius: zone.radius };
     });
   } catch (error) {
     console.error('fetchRestrictedZoneCoords:', error);

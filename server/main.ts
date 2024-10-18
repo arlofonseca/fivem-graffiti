@@ -93,7 +93,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
       size: size,
       hex: hex,
       created_date: createdDate,
-      displayed: true
+      displayed: true,
     };
 
     graffitiTags[id] = data;
@@ -143,7 +143,7 @@ async function cleanNearestGraffiti(source: number): Promise<void> {
       sendChatMessage(source, '^#5e81acYou are cleaning the wall use ^#c78946/abortclean ^#5e81acto cancel the action!');
       await Cfx.Delay(100);
       const rowsChanged: unknown = await db.deleteGraffiti(closestGraffiti.id);
-      if (rowsChanged && (typeof rowsChanged === 'number' && rowsChanged > 0)) {
+      if (rowsChanged && typeof rowsChanged === 'number' && rowsChanged > 0) {
         delete graffitiTags[closestGraffiti.id];
         emitNet('fivem-graffiti:client:deleteGraffitiTag', -1, closestGraffiti.id);
         sendChatMessage(source, `^#5e81acSuccessfully cleaned the nearest graffiti tag.`);

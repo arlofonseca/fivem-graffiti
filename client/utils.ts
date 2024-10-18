@@ -33,9 +33,9 @@ export function calculateRotationFromNormal(normal: { x: number; y: number; z: n
   const y: number = normal.y / length;
   const z: number = normal.z / length;
 
-  const pitchDeg: number = (Math.asin(-z) * 180 / Math.PI + 360) % 360;
-  const rollDeg: number = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
-  const yawDeg: number = (Math.atan2(-x, y) * 180 / Math.PI + 360) % 360;
+  const pitchDeg: number = ((Math.asin(-z) * 180) / Math.PI + 360) % 360;
+  const rollDeg: number = ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+  const yawDeg: number = ((Math.atan2(-x, y) * 180) / Math.PI + 360) % 360;
 
   return { x: pitchDeg, y: rollDeg, z: yawDeg };
 }
