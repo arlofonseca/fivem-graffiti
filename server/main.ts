@@ -7,9 +7,12 @@ import { getArea, getDistance, getHex, hasItem, isAdmin, sendChatMessage } from 
 
 const graffitiTags: Record<number, Graffiti> = {};
 const spraycanDurability: Record<number, number> = {};
+const playerGraffitiCooldowns: Record<number, number> = {};
 
 const group: string = `group.${config.ace_group}`;
 const restrictedGroup: string | undefined = config.admin_only ? group : undefined;
+
+const cooldown: number = 60 * 1000;
 
 async function createGraffitiTag(source: number, args: { text: string; font: number; size: number; hex: string }): Promise<void> {
   // @ts-ignore
@@ -18,6 +21,14 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
 
   if (activeGraffiti >= config.max_graffiti_tags) {
     return sendChatMessage(source, `^#d73232ERROR ^#ffffffYou cannot have more than ${config.max_graffiti_tags} active Graffiti Tags at a time.`);
+  }
+
+  const time: number = Date.now();
+  const lastCreated: number = playerGraffitiCooldowns[source] || 0;
+
+  if (lastCreated && time - lastCreated < cooldown) {
+    const timeLeft: number = Math.ceil((cooldown - (time - lastCreated)) / 1000);
+    return sendChatMessage(source, `^#d73232ERROR ^#ffffffYou need to wait ${timeLeft} seconds before creating another graffiti.`);
   }
 
   if (!hasItem(source, config.spraycan_item)) {
@@ -83,6 +94,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
     graffitiTags[id] = data;
     emitNet('fivem-graffiti:client:createGraffitiTag', -1, id, coords, dimension, text, font, size, hex);
     sendChatMessage(source, '^#5e81acYou have successfully created a Graffiti Tag. Use ^#ffffff/cleangraffiti ^#5e81acto remove it');
+    playerGraffitiCooldowns[source] = time;
   } catch (error) {
     console.error('Error creating Graffiti Tag:', error);
     sendChatMessage(source, '^#d73232ERROR ^#ffffffAn error occurred while creating the Graffiti Tag.');
