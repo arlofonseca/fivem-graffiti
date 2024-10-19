@@ -162,14 +162,16 @@ async function cleanNearestGraffiti(source: number): Promise<void> {
 async function nearbyGraffiti(source: number): Promise<void> {
   // @ts-ignore
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
-  const nearbyGraffiti: number[] = [];
+  // @ts-ignore
+  const bucket: number = GetPlayerRoutingBucket(source);
+  const nearbyGraffiti: Graffiti[] = [];
 
   for (const id in graffitiTags) {
     const graffiti: Graffiti = graffitiTags[id];
     const graffitiCoords: number[] = JSON.parse(graffiti.coords);
     const distance: number = getDistance(coords, graffitiCoords);
-    if (distance < 50) {
-      nearbyGraffiti.push(graffiti.id);
+    if (graffiti.dimension === bucket && distance < 50) {
+      nearbyGraffiti.push(graffiti);
     }
   }
 
@@ -179,9 +181,8 @@ async function nearbyGraffiti(source: number): Promise<void> {
 
   sendChatMessage(source, '^#5e81ac--------- ^#ffffffNearby Graffiti ^#5e81ac---------');
 
-  for (const id of nearbyGraffiti) {
-    const data: Graffiti = graffitiTags[id];
-    sendChatMessage(source, `^#ffffffGraffiti ID: ^#5e81ac${data.id} ^#ffffff| Created by: ^#5e81ac${data.creator_id} ^#ffffff| Location: ^#5e81ac${data.coords} ^#ffffff| Dimension: ^#5e81ac${data.dimension} ^#ffffff| Text: ^#5e81ac${data.text} ^#ffffff| Font: ^#5e81ac${data.font} ^#ffffff| Size: ^#5e81ac${data.size} ^#ffffff| Hex: ^#5e81ac${data.hex}`);
+  for (const graffiti of nearbyGraffiti) {
+    sendChatMessage(source, `^#ffffffGraffiti ID: ^#5e81ac${graffiti.id} ^#ffffff| Created by: ^#5e81ac${graffiti.creator_id} ^#ffffff| Location: ^#5e81ac${graffiti.coords} ^#ffffff| Dimension: ^#5e81ac${graffiti.dimension} ^#ffffff| Text: ^#5e81ac${graffiti.text} ^#ffffff| Font: ^#5e81ac${graffiti.font} ^#ffffff| Size: ^#5e81ac${graffiti.size} ^#ffffff| Hex: ^#5e81ac${graffiti.hex}`);
   }
 }
 
@@ -324,13 +325,15 @@ async function removeRestrictedZone(source: number, args: { zoneId: number }): P
 async function nearbyRestrictedZones(source: number): Promise<void> {
   // @ts-ignore
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
+  // @ts-ignore
+  const bucket: number = GetPlayerRoutingBucket(source);
   const nearbyZones: RestrictedZones[] = [];
 
   for (const id in restrictedZones) {
     const zone: RestrictedZones = restrictedZones[id];
     const zoneCoords: number[] = JSON.parse(zone.coords);
     const distance: number = getDistance(coords, zoneCoords);
-    if (distance < 50) {
+    if (zone.dimension === bucket && distance < 50) {
       nearbyZones.push(zone);
     }
   }
@@ -342,7 +345,7 @@ async function nearbyRestrictedZones(source: number): Promise<void> {
   sendChatMessage(source, '^#5e81ac--------- ^#ffffffNearby Restricted Zones ^#5e81ac---------');
 
   for (const zone of nearbyZones) {
-    sendChatMessage(source, `^#ffffffZone ID: ^#5e81ac${zone.id} ^#ffffff| Location: ^#5e81ac${zone.coords} ^#ffffff| Radius: ^#5e81ac${zone.radius}`);
+    sendChatMessage(source, `^#ffffffZone ID: ^#5e81ac${zone.id} ^#ffffff| Location: ^#5e81ac${zone.coords} ^#ffffff| Radius: ^#5e81ac${zone.radius} ^#ffffff| Dimension: ^#5e81ac${zone.dimension}`);
   }
 }
 

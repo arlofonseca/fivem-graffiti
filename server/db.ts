@@ -53,7 +53,7 @@ export async function deleteGraffiti(graffitiId: number): Promise<unknown> {
 
 export async function countGraffiti(identifier: string | number): Promise<number> {
   try {
-    const result: { owner: string }[] = await oxmysql.query<{ owner: string }[]>('SELECT * FROM graffiti_tags WHERE creator_id = ?', [identifier]);
+    const result: { creator_id: string }[] = await oxmysql.query<{ creator_id: string }[]>('SELECT * FROM graffiti_tags WHERE creator_id = ?', [identifier]);
     return result ? result.length : 0;
   } catch (error) {
     console.error('countGraffiti:', error);
@@ -135,7 +135,7 @@ export async function getRestrictedZoneCoords(): Promise<{ x: number; y: number;
   try {
     const zones: RestrictedZones[] = await fetchRestrictedZonesTable();
     return zones.map((zone) => {
-      const array = JSON.parse(zone.coords);
+      const array: number[] = JSON.parse(zone.coords);
       return { x: array[0], y: array[1], z: array[2], radius: zone.radius };
     });
   } catch (error) {
