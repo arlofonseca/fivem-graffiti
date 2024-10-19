@@ -167,7 +167,7 @@ async function nearbyGraffiti(source: number): Promise<void> {
   for (const id in graffitiTags) {
     const graffiti: Graffiti = graffitiTags[id];
     const graffitiCoords: number[] = JSON.parse(graffiti.coords);
-    const distance: number = Math.sqrt(Math.pow(graffitiCoords[0] - coords[0], 2) + Math.pow(graffitiCoords[1] - coords[1], 2) + Math.pow(graffitiCoords[2] - coords[2], 2));
+    const distance: number = getDistance(coords, graffitiCoords);
     if (distance < 50) {
       nearbyGraffiti.push(graffiti.id);
     }
@@ -321,6 +321,31 @@ async function removeRestrictedZone(source: number, args: { zoneId: number }): P
   }
 }
 
+async function nearbyRestrictedZones(source: number): Promise<void> {
+  // @ts-ignore
+  const coords: number[] = GetEntityCoords(GetPlayerPed(source));
+  const nearbyZones: RestrictedZones[] = [];
+
+  for (const id in restrictedZones) {
+    const zone: RestrictedZones = restrictedZones[id];
+    const zoneCoords: number[] = JSON.parse(zone.coords);
+    const distance: number = getDistance(coords, zoneCoords);
+    if (distance < 50) {
+      nearbyZones.push(zone);
+    }
+  }
+
+  if (nearbyZones.length === 0) {
+    return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou are not near any restricted zones.');
+  }
+
+  sendChatMessage(source, '^#5e81ac--------- ^#ffffffNearby Restricted Zones ^#5e81ac---------');
+
+  for (const zone of nearbyZones) {
+    sendChatMessage(source, `^#ffffffZone ID: ^#5e81ac${zone.id} ^#ffffff| Location: ^#5e81ac${zone.coords} ^#ffffff| Radius: ^#5e81ac${zone.radius}`);
+  }
+}
+
 onNet('fivem-graffiti:server:loadGraffitiTags', () => {
   db.loadGraffiti(source);
 });
@@ -422,5 +447,9 @@ addCommand(['removerestrictedzone', 'rrz'], removeRestrictedZone, {
       optional: false,
     },
   ],
+  restricted: restrictedGroup,
+});
+
+addCommand(['nearbyrestrictedzones', 'nrz'], nearbyRestrictedZones, {
   restricted: restrictedGroup,
 });
