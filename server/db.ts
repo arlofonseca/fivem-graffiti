@@ -86,6 +86,7 @@ export async function createRestrictedZonesTable(): Promise<void> {
         coords LONGTEXT NOT NULL,
         dimension INT DEFAULT 0,
         radius INT DEFAULT 0,
+        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`
     );
@@ -130,7 +131,7 @@ export async function getRestrictedZoneById(zoneId: number): Promise<RestrictedZ
   }
 }
 
-export async function fetchRestrictedZoneCoords(): Promise<{ x: number; y: number; z: number; radius: number }[]> {
+export async function getRestrictedZoneCoords(): Promise<{ x: number; y: number; z: number; radius: number }[]> {
   try {
     const zones: RestrictedZones[] = await fetchRestrictedZonesTable();
     return zones.map((zone) => {
@@ -138,7 +139,7 @@ export async function fetchRestrictedZoneCoords(): Promise<{ x: number; y: numbe
       return { x: array[0], y: array[1], z: array[2], radius: zone.radius };
     });
   } catch (error) {
-    console.error('fetchRestrictedZoneCoords:', error);
+    console.error('getRestrictedZoneCoords:', error);
     return [];
   }
 }

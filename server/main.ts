@@ -7,6 +7,7 @@ import * as db from './db';
 import { getArea, getDistance, getHex, hasItem, isAdmin, sendChatMessage } from './utils';
 
 const graffitiTags: Record<number, Graffiti> = {};
+const restrictedZones: Record<number, RestrictedZones> = {};
 const spraycanDurability: Record<number, number> = {};
 const playerGraffitiCooldowns: Record<number, number> = {};
 
@@ -29,7 +30,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
 
   if (lastCreated && time - lastCreated < cooldown) {
     const timeLeft: number = Math.ceil((cooldown - (time - lastCreated)) / 1000);
-    return sendChatMessage(source, `^#d73232ERROR ^#ffffffYou need to wait ${timeLeft} seconds before creating another graffiti.`);
+    return sendChatMessage(source, `^#d73232ERROR ^#ffffffYou need to wait ${timeLeft} seconds before creating another graffiti tag.`);
   }
 
   if (!hasItem(source, config.spraycan_item)) {
@@ -66,9 +67,9 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
       return sendChatMessage(source, '^#d73232ERROR ^#ffffffInvalid hex code.');
     }
 
-    const restrictedArea: { x: number; y: number; z: number; radius: number }[] = await db.fetchRestrictedZoneCoords();
-    if (restrictedArea) {
-      const area: boolean = getArea({ x: coords[0], y: coords[1], z: coords[2] }, restrictedArea);
+    const zoneCoords: { x: number; y: number; z: number; radius: number }[] = await db.getRestrictedZoneCoords();
+    if (zoneCoords) {
+      const area: boolean = getArea({ x: coords[0], y: coords[1], z: coords[2] }, zoneCoords);
       if (area) {
         return sendChatMessage(source, '^#d73232You cannot place graffiti in this area!');
       }
@@ -96,6 +97,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
       displayed: true,
     };
 
+    console.log(data)
     graffitiTags[id] = data;
     emitNet('fivem-graffiti:client:createGraffitiTag', -1, id, coords, dimension, text, font, size, hex);
     sendChatMessage(source, '^#5e81acYou have successfully created a Graffiti Tag. Use ^#ffffff/cleangraffiti ^#5e81acto remove it');
@@ -244,7 +246,7 @@ async function massRemoveGraffiti(source: number, args: { radius: number; includ
   const success: Promise<void>[] = remove.map(async (graffiti: Graffiti): Promise<void> => {
     try {
       const rowsChanged: unknown = await db.deleteGraffiti(graffiti.id);
-      if (!rowsChanged || (typeof rowsChanged === 'number' && rowsChanged > 0)) {
+      if (rowsChanged && typeof rowsChanged === 'number' && rowsChanged > 0) {
         delete graffitiTags[graffiti.id];
         emitNet('fivem-graffiti:client:deleteGraffitiTag', -1, graffiti.id);
       }
@@ -260,16 +262,17 @@ async function massRemoveGraffiti(source: number, args: { radius: number; includ
 
 async function addRestrictedZone(source: number, args: { radius: number }): Promise<void> {
   // @ts-ignore
-  const creatorId: string = GetPlayerIdentifierByType(source, config.identifier_type);
+  const identifier: string = GetPlayerIdentifierByType(source, config.identifier_type);
   // @ts-ignore
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
   const coordsStr: string = JSON.stringify(coords);
   // @ts-ignore
   const dimension: number = GetPlayerRoutingBucket(source);
   const radius: number = args.radius;
+  const createdDate = new Date();
 
   try {
-    const rowsChanged: unknown = await db.saveRestrictedZone(creatorId, coordsStr, dimension, radius);
+    const rowsChanged: unknown = await db.saveRestrictedZone(identifier, coordsStr, dimension, radius);
     if (!rowsChanged || (typeof rowsChanged === 'number' && rowsChanged === 0)) {
       console.error('Failed to insert Restricted Zone into the database');
       return sendChatMessage(source, '^#d73232ERROR ^#ffffffFailed to create Restricted Zone.');
@@ -278,6 +281,17 @@ async function addRestrictedZone(source: number, args: { radius: number }): Prom
     const id: number | undefined = (rowsChanged as any).insertId;
     if (!id) return;
 
+    const data: RestrictedZones = {
+      id: id,
+      creator_id: identifier,
+      coords: coordsStr,
+      dimension: dimension,
+      radius: radius,
+      created_date: createdDate,
+    };
+
+    console.log(data)
+    restrictedZones[id] = data;
     sendChatMessage(source, `^#5e81ac[ADMIN] ^#ffffffSuccessfully created a restricted zone with a radius of ${radius} units!`);
   } catch (error) {
     console.error('Error creating restricted zone:', error);
@@ -367,7 +381,6 @@ addCommand(['removegraffiti', 'rg'], deleteGraffitiTag, {
   params: [
     {
       name: 'graffitiId',
-      help: 'The id of the graffiti tag to clean',
       paramType: 'number',
       optional: false,
     },
@@ -378,13 +391,11 @@ addCommand(['massremovegraffiti', 'removegraffitis'], massRemoveGraffiti, {
   params: [
     {
       name: 'radius',
-      help: 'The radius within which to remove graffiti',
       paramType: 'number',
       optional: false,
     },
     {
       name: 'includeAdmin',
-      help: 'Set to 1 to include graffiti created by admins',
       paramType: 'number',
       optional: true,
     },

@@ -4,4 +4,5 @@ export interface RestrictedZones {
   coords: string;
   dimension: number;
   radius: number;
+  created_date: Date;
 }

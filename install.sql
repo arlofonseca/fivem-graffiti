@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS `graffiti_tags` (
   `font` INT DEFAULT 0,
   `size` INT DEFAULT 0,
   `hex` LONGTEXT NOT NULL,
+  `created_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -16,5 +17,6 @@ CREATE TABLE IF NOT EXISTS `graffiti_restricted_zones` (
   `coords` LONGTEXT NOT NULL,
   `dimension` INT DEFAULT 0,
   `radius` INT DEFAULT 0,
+  `created_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
