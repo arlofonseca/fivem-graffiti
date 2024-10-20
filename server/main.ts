@@ -11,8 +11,7 @@ const restrictedZones: Record<number, RestrictedZones> = {};
 const spraycanDurability: Record<number, number> = {};
 const creationCooldown: Record<number, number> = {};
 
-const group: string = `group.${config.ace_group}`;
-const restrictedGroup: string | undefined = config.admin_only ? group : undefined;
+const restrictedGroup: string = `group.${config.ace_group}`;
 
 const cooldown: number = 60 * 1000;
 

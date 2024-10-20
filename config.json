@@ -2,7 +2,6 @@
   "identifier_type": "license2",
   "max_graffiti_tags": 3,
   "graffiti_distance": 15,
-  "admin_only": true,
   "ace_group": "admin",
   "spraycan_item": "spraycan",
   "clean_item": "rag",
