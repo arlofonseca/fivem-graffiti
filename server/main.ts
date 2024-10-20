@@ -102,7 +102,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
     sendChatMessage(source, '^#5e81acYou have successfully created a Graffiti Tag. Use ^#ffffff/cleangraffiti ^#5e81acto remove it');
     creationCooldown[source] = time;
   } catch (error) {
-    console.error('Error creating Graffiti Tag:', error);
+    console.error('createGraffitiTag:', error);
     sendChatMessage(source, '^#d73232ERROR ^#ffffffAn error occurred while creating the Graffiti Tag.');
   }
 }
@@ -112,34 +112,34 @@ async function cleanNearestGraffiti(source: number): Promise<void> {
   // @ts-ignore
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
   // @ts-ignore
-  const bucket: number = GetPlayerRoutingBucket(source);
+  const dimension: number = GetPlayerRoutingBucket(source);
 
   let cleanDistance: number = 5;
   let closestGraffiti: Graffiti | null = null;
 
-  for (const id in graffitiTags) {
-    const graffiti: Graffiti = graffitiTags[id];
-    const graffitiCoords: number[] = JSON.parse(graffiti.coords);
+  try {
+    for (const id in graffitiTags) {
+      const graffiti: Graffiti = graffitiTags[id];
+      const graffitiCoords: number[] = JSON.parse(graffiti.coords);
 
-    if (graffiti.dimension !== bucket) continue;
+      if (graffiti.dimension !== dimension) continue;
 
-    const distance: number = getDistance(coords, graffitiCoords);
-    if (distance < cleanDistance) {
-      cleanDistance = distance;
-      closestGraffiti = graffiti;
+      const distance: number = getDistance(coords, graffitiCoords);
+      if (distance < cleanDistance) {
+        cleanDistance = distance;
+        closestGraffiti = graffiti;
+      }
     }
-  }
 
-  // @ts-ignore
-  if (!isAdmin(source, restrictedGroup)) {
-    if (!hasItem(source, config.clean_item)) {
-      sendChatMessage(source, '^#d73232ERROR ^#ffffffYou do not own a Rag!');
-      return;
+    // @ts-ignore
+    if (!isAdmin(source, restrictedGroup)) {
+      if (!hasItem(source, config.clean_item)) {
+        sendChatMessage(source, '^#d73232ERROR ^#ffffffYou do not own a Rag!');
+        return;
+      }
     }
-  }
 
-  if (closestGraffiti) {
-    try {
+    if (closestGraffiti) {
       // -- @todo: stop the cleaning process if `/abortclean` is executed --
       sendChatMessage(source, '^#5e81acYou are cleaning the wall use ^#c78946/abortclean ^#5e81acto cancel the action!');
       await Cfx.Delay(100);
@@ -149,12 +149,12 @@ async function cleanNearestGraffiti(source: number): Promise<void> {
         emitNet('fivem-graffiti:client:deleteGraffitiTag', -1, closestGraffiti.id);
         sendChatMessage(source, `^#5e81acSuccessfully cleaned the nearest graffiti tag.`);
       }
-    } catch (error) {
-      console.error(`Failed to remove graffiti tag with ID ${closestGraffiti.id}:`, error);
-      sendChatMessage(source, '^#d73232ERROR ^#ffffffAn error occurred while removing the graffiti tag.');
+    } else {
+      sendChatMessage(source, '^#d73232No graffiti to clean nearby!');
     }
-  } else {
-    sendChatMessage(source, '^#d73232No graffiti to clean nearby!');
+  } catch (error) {
+    console.error(`cleanNearestGraffiti:`, error);
+    sendChatMessage(source, '^#d73232ERROR ^#ffffffAn unexpected error occurred while trying to clean graffiti.');
   }
 }
 
@@ -163,23 +163,28 @@ async function nearbyGraffiti(source: number): Promise<void> {
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
   const nearbyGraffiti: Graffiti[] = [];
 
-  for (const id in graffitiTags) {
-    const graffiti: Graffiti = graffitiTags[id];
-    const graffitiCoords: number[] = JSON.parse(graffiti.coords);
-    const distance: number = getDistance(coords, graffitiCoords);
-    if (distance < 50) {
-      nearbyGraffiti.push(graffiti);
+  try {
+    for (const id in graffitiTags) {
+      const graffiti: Graffiti = graffitiTags[id];
+      const graffitiCoords: number[] = JSON.parse(graffiti.coords);
+      const distance: number = getDistance(coords, graffitiCoords);
+      if (distance < 50) {
+        nearbyGraffiti.push(graffiti);
+      }
     }
-  }
 
-  if (nearbyGraffiti.length === 0) {
-    return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou are not near any active graffiti tags.');
-  }
+    if (nearbyGraffiti.length === 0) {
+      return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou are not near any active graffiti tags.');
+    }
 
-  sendChatMessage(source, '^#5e81ac--------- ^#ffffffNearby Graffiti ^#5e81ac---------');
+    sendChatMessage(source, '^#5e81ac--------- ^#ffffffNearby Graffiti ^#5e81ac---------');
 
-  for (const graffiti of nearbyGraffiti) {
-    sendChatMessage(source, `^#ffffffGraffiti ID: ^#5e81ac${graffiti.id} ^#ffffff| Created by: ^#5e81ac${graffiti.creator_id} ^#ffffff| Location: ^#5e81ac${graffiti.coords} ^#ffffff| Dimension: ^#5e81ac${graffiti.dimension} ^#ffffff| Text: ^#5e81ac${graffiti.text} ^#ffffff| Font: ^#5e81ac${graffiti.font} ^#ffffff| Size: ^#5e81ac${graffiti.size} ^#ffffff| Hex: ^#5e81ac${graffiti.hex}`);
+    for (const graffiti of nearbyGraffiti) {
+      sendChatMessage(source, `^#ffffffGraffiti ID: ^#5e81ac${graffiti.id} ^#ffffff| Created by: ^#5e81ac${graffiti.creator_id} ^#ffffff| Location: ^#5e81ac${graffiti.coords} ^#5e81ac| Dimension: ^#5e81ac${graffiti.dimension} ^#5e81ac| Text: ^#5e81ac${graffiti.text} ^#5e81ac| Font: ^#5e81ac${graffiti.font} ^#5e81ac| Size: ^#5e81ac${graffiti.size} ^#5e81ac| Hex: ^#5e81ac${graffiti.hex}`);
+    }
+  } catch (error) {
+    console.error(`nearbyGraffiti:`, error);
+    sendChatMessage(source, `^#d73232ERROR ^#ffffffAn unexpected error occurred while fetching nearby graffiti.`);
   }
 }
 
@@ -187,8 +192,8 @@ async function deleteGraffitiTag(source: number, args: { graffitiId: number }): 
   const graffitiId: number = args.graffitiId;
 
   try {
-    const data: Graffiti = graffitiTags[graffitiId];
-    if (!data) {
+    const graffiti: Graffiti = graffitiTags[graffitiId];
+    if (!graffiti) {
       sendChatMessage(source, '^#d73232ERROR ^#ffffffNo Graffiti Tag found with the specified ID.');
       return;
     }
@@ -202,10 +207,10 @@ async function deleteGraffitiTag(source: number, args: { graffitiId: number }): 
 
     delete graffitiTags[graffitiId];
     emitNet('fivem-graffiti:client:deleteGraffitiTag', source, graffitiId);
-    sendChatMessage(source, `^#5e81ac[ADMIN] ^#ffffffYou removed the graffiti (#${graffitiId}): ${data.text}.`);
+    sendChatMessage(source, `^#5e81ac[ADMIN] ^#ffffffYou removed the graffiti (#${graffitiId}): ${graffiti.text}.`);
   } catch (error) {
-    console.error('Error deleting Graffiti Tag:', error);
-    sendChatMessage(source, '^#d73232ERROR ^#ffffffAn error occurred while deleting the Graffiti Tag.');
+    console.error('deleteGraffitiTag:', error);
+    sendChatMessage(source, `^#d73232ERROR ^#ffffffAn unexpected error occurred while deleting graffiti.`);
   }
 }
 
@@ -215,38 +220,68 @@ async function massRemoveGraffiti(source: number, args: { radius: number; includ
   // @ts-ignore
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
   // @ts-ignore
-  const bucket: number = GetPlayerRoutingBucket(source);
+  const dimension: number = GetPlayerRoutingBucket(source);
   const radius: number = args.radius;
   const includeAdmin: boolean = args.includeAdmin === 1;
   const remove: Graffiti[] = [];
 
-  for (const graffiti of Object.values(graffitiTags)) {
-    const graffitiCoords: number[] = JSON.parse(graffiti.coords);
-    const distance: number = getDistance(coords, graffitiCoords);
-    if (graffiti.dimension === bucket && distance <= radius && (includeAdmin || graffiti.creator_id === identifier)) {
-      remove.push(graffiti);
+  try {
+    for (const graffiti of Object.values(graffitiTags)) {
+      const graffitiCoords: number[] = JSON.parse(graffiti.coords);
+      const distance: number = getDistance(coords, graffitiCoords);
+      if (graffiti.dimension === dimension && distance <= radius && (includeAdmin || graffiti.creator_id === identifier)) {
+        remove.push(graffiti);
+      }
     }
-  }
 
-  if (remove.length === 0) {
-    return sendChatMessage(source, `^#d73232ERROR ^#ffffffNo graffiti found within a radius of ${radius} units in dimension ${bucket}.`);
-  }
+    if (remove.length === 0) {
+      return sendChatMessage(source, `^#d73232ERROR ^#ffffffNo graffiti found within a radius of ${radius} units in dimension ${dimension}.`);
+    }
 
-  const success: Promise<void>[] = remove.map(async (graffiti: Graffiti): Promise<void> => {
-    try {
+    const success: Promise<void>[] = remove.map(async (graffiti: Graffiti): Promise<void> => {
       const rowsChanged: unknown = await db.deleteGraffiti(graffiti.id);
       if (rowsChanged && typeof rowsChanged === 'number' && rowsChanged > 0) {
         delete graffitiTags[graffiti.id];
         emitNet('fivem-graffiti:client:deleteGraffitiTag', -1, graffiti.id);
       }
-    } catch (error) {
-      console.error(`Failed to remove graffiti tag with ID ${graffiti.id}:`, error);
+    });
+
+    await Promise.all(success);
+
+    sendChatMessage(source, `^#5e81ac[ADMIN] ^#ffffffYou removed ${remove.length} graffiti(s) in the radius of ${radius} units!`);
+  } catch (error) {
+    console.error(`massRemoveGraffiti:`, error);
+    sendChatMessage(source, `^#d73232ERROR ^#ffffffAn unexpected error occurred while trying to mass remove graffiti.`);
+  }
+}
+
+async function teleportToGraffiti(source: number, args: { graffitiId: number }): Promise<void> {
+  const graffitiId: number = args.graffitiId;
+
+  try {
+    const graffiti = graffitiTags[graffitiId];
+    if (!graffiti) {
+      sendChatMessage(source, `^#d73232ERROR ^#ffffffGraffiti with ID ${graffitiId} couldn't be found.`);
+      return;
     }
-  });
 
-  await Promise.all(success);
+    // @ts-ignore
+    const dimension: number = GetPlayerRoutingBucket(source);
+    const graffitiDimension: number = graffiti.dimension;
 
-  sendChatMessage(source, `^#5e81ac[ADMIN] ^#ffffffYou removed ${remove.length} graffiti(s) in the radius of ${radius} units!`);
+    if (dimension !== graffitiDimension) {
+      // @ts-ignore
+      SetPlayerRoutingBucket(source, dimension);
+      // @ts-ignore
+      SetEntityCoords(GetPlayerPed(source), graffiti.coords, false, false, false, false);
+      sendChatMessage(source, `^#5e81acYou have successfully teleported to graffiti ID ${graffitiId} in dimension ${graffitiDimension}`);
+    } else {
+      sendChatMessage(source, `^#f39c12You are already in dimension ${graffitiDimension}.`);
+    }
+  } catch (error) {
+    console.error(`teleportToGraffiti:`, error);
+    sendChatMessage(source, '^#d73232ERROR ^#ffffffAn error occurred while teleporting to graffiti.');
+  }
 }
 
 async function addRestrictedZone(source: number, args: { radius: number }): Promise<void> {
@@ -256,12 +291,12 @@ async function addRestrictedZone(source: number, args: { radius: number }): Prom
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
   const coordsStr: string = JSON.stringify(coords);
   // @ts-ignore
-  const bucket: number = GetPlayerRoutingBucket(source);
+  const dimension: number = GetPlayerRoutingBucket(source);
   const radius: number = args.radius;
   const createdDate = new Date();
 
   try {
-    const rowsChanged: unknown = await db.saveRestrictedZone(identifier, coordsStr, bucket, radius);
+    const rowsChanged: unknown = await db.saveRestrictedZone(identifier, coordsStr, dimension, radius);
     if (!rowsChanged || (typeof rowsChanged === 'number' && rowsChanged === 0)) {
       console.error('Failed to insert Restricted Zone into the database');
       return sendChatMessage(source, '^#d73232ERROR ^#ffffffFailed to create Restricted Zone.');
@@ -274,7 +309,7 @@ async function addRestrictedZone(source: number, args: { radius: number }): Prom
       id: id,
       creator_id: identifier,
       coords: coordsStr,
-      dimension: bucket,
+      dimension: dimension,
       radius: radius,
       created_date: createdDate,
     };
@@ -283,7 +318,7 @@ async function addRestrictedZone(source: number, args: { radius: number }): Prom
     restrictedZones[id] = data;
     sendChatMessage(source, `^#5e81ac[ADMIN] ^#ffffffSuccessfully created a restricted zone with a radius of ${radius} units!`);
   } catch (error) {
-    console.error('Error creating restricted zone:', error);
+    console.error('addRestrictedZone:', error);
     sendChatMessage(source, `^#d73232ERROR ^#ffffffAn error occurred while creating the restricted zone.`);
   }
 }
@@ -292,8 +327,8 @@ async function removeRestrictedZone(source: number, args: { zoneId: number }): P
   const zoneId: number = args.zoneId;
 
   try {
-    const data: RestrictedZones | null = await db.getRestrictedZoneById(zoneId);
-    if (!data) {
+    const zone: RestrictedZones | null = await db.getRestrictedZoneById(zoneId);
+    if (!zone) {
       return sendChatMessage(source, '^#d73232ERROR ^#ffffffNo restricted zone found with the specified ID.');
     }
 
@@ -305,7 +340,7 @@ async function removeRestrictedZone(source: number, args: { zoneId: number }): P
 
     sendChatMessage(source, `^#5e81ac[ADMIN] ^#ffffffYou removed restricted zone with ID: ${zoneId}.`);
   } catch (error) {
-    console.error('Error deleting Restricted Zone:', error);
+    console.error('removeRestrictedZone:', error);
     sendChatMessage(source, '^#d73232ERROR ^#ffffffAn error occurred while deleting the restricted zone.');
   }
 }
@@ -315,23 +350,29 @@ async function nearbyRestrictedZones(source: number): Promise<void> {
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
   const nearbyZones: RestrictedZones[] = [];
 
-  for (const id in restrictedZones) {
-    const zone: RestrictedZones = restrictedZones[id];
-    const zoneCoords: number[] = JSON.parse(zone.coords);
-    const distance: number = getDistance(coords, zoneCoords);
-    if (distance < 50) {
-      nearbyZones.push(zone);
+  try {
+    for (const id in restrictedZones) {
+      const zone: RestrictedZones = restrictedZones[id];
+      const zoneCoords: number[] = JSON.parse(zone.coords);
+      const distance: number = getDistance(coords, zoneCoords);
+      if (distance < 50) {
+        nearbyZones.push(zone);
+      }
     }
-  }
 
-  if (nearbyZones.length === 0) {
-    return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou are not near any restricted zones.');
-  }
+    if (nearbyZones.length === 0) {
+      return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou are not near any restricted zones.');
+    }
 
-  sendChatMessage(source, '^#5e81ac--------- ^#ffffffNearby Restricted Zones ^#5e81ac---------');
+    sendChatMessage(source, '^#5e81ac--------- ^#ffffffNearby Restricted Zones ^#5e81ac---------');
 
-  for (const zone of nearbyZones) {
-    sendChatMessage(source, `^#ffffffZone ID: ^#5e81ac${zone.id} ^#ffffff| Location: ^#5e81ac${zone.coords} ^#ffffff| Radius: ^#5e81ac${zone.radius} ^#ffffff| Dimension: ^#5e81ac${zone.dimension}`);
+    for (const zone of nearbyZones) {
+      sendChatMessage(source, `^#ffffffZone ID: ^#5e81ac${zone.id} ^#ffffff| Location: ^#5e81ac${zone.coords} ^#ffffff| Radius: ^#5e81ac${zone.radius} ^#ffffff| Dimension: ^#5e81ac${zone.dimension}`);
+    }
+
+  } catch (error) {
+    console.error(`nearbyRestrictedZones:`, error);
+    sendChatMessage(source, '^#d73232ERROR ^#ffffffAn unexpected error occurred while fetching nearby restricted zones.');
   }
 }
 
@@ -441,5 +482,16 @@ addCommand(['removerestrictedzone', 'rrz'], removeRestrictedZone, {
 });
 
 addCommand(['nearbyrestrictedzones', 'nrz'], nearbyRestrictedZones, {
+  restricted: restrictedGroup,
+});
+
+addCommand(['gotograffiti'], teleportToGraffiti, {
+  params: [
+    {
+      name: 'graffitiId',
+      paramType: 'number',
+      optional: false,
+    },
+  ],
   restricted: restrictedGroup,
 });
