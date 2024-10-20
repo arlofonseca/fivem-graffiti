@@ -9,7 +9,7 @@ import { getArea, getDistance, getHex, hasItem, isAdmin, sendChatMessage } from 
 const graffitiTags: Record<number, Graffiti> = {};
 const restrictedZones: Record<number, RestrictedZones> = {};
 const spraycanDurability: Record<number, number> = {};
-const playerGraffitiCooldowns: Record<number, number> = {};
+const creationCooldown: Record<number, number> = {};
 
 const group: string = `group.${config.ace_group}`;
 const restrictedGroup: string | undefined = config.admin_only ? group : undefined;
@@ -26,7 +26,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
   }
 
   const time: number = Date.now();
-  const lastCreated: number = playerGraffitiCooldowns[source] || 0;
+  const lastCreated: number = creationCooldown[source] || 0;
 
   if (lastCreated && time - lastCreated < cooldown) {
     const timeLeft: number = Math.ceil((cooldown - (time - lastCreated)) / 1000);
@@ -101,7 +101,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
     graffitiTags[id] = data;
     emitNet('fivem-graffiti:client:createGraffitiTag', -1, id, coords, dimension, text, font, size, hex);
     sendChatMessage(source, '^#5e81acYou have successfully created a Graffiti Tag. Use ^#ffffff/cleangraffiti ^#5e81acto remove it');
-    playerGraffitiCooldowns[source] = time;
+    creationCooldown[source] = time;
   } catch (error) {
     console.error('Error creating Graffiti Tag:', error);
     sendChatMessage(source, '^#d73232ERROR ^#ffffffAn error occurred while creating the Graffiti Tag.');
@@ -162,15 +162,13 @@ async function cleanNearestGraffiti(source: number): Promise<void> {
 async function nearbyGraffiti(source: number): Promise<void> {
   // @ts-ignore
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
-  // @ts-ignore
-  const bucket: number = GetPlayerRoutingBucket(source);
   const nearbyGraffiti: Graffiti[] = [];
 
   for (const id in graffitiTags) {
     const graffiti: Graffiti = graffitiTags[id];
     const graffitiCoords: number[] = JSON.parse(graffiti.coords);
     const distance: number = getDistance(coords, graffitiCoords);
-    if (graffiti.dimension === bucket && distance < 50) {
+    if (distance < 50) {
       nearbyGraffiti.push(graffiti);
     }
   }
@@ -187,8 +185,6 @@ async function nearbyGraffiti(source: number): Promise<void> {
 }
 
 async function deleteGraffitiTag(source: number, args: { graffitiId: number }): Promise<void> {
-  // @ts-ignore
-  const identifier: string = GetPlayerIdentifierByType(source, config.identifier_type);
   const graffitiId: number = args.graffitiId;
 
   try {
@@ -196,11 +192,6 @@ async function deleteGraffitiTag(source: number, args: { graffitiId: number }): 
     if (!data) {
       sendChatMessage(source, '^#d73232ERROR ^#ffffffNo Graffiti Tag found with the specified ID.');
       return;
-    }
-
-    // @ts-ignore
-    if (data.creator_id !== identifier && !isAdmin(source, restrictedGroup)) {
-      return sendChatMessage(source, '^#d73232ERROR ^#ffffffYou cannot delete a Graffiti Tag that you did not create.');
     }
 
     const rowsChanged: unknown = await db.deleteGraffiti(graffitiId);
@@ -224,18 +215,16 @@ async function massRemoveGraffiti(source: number, args: { radius: number; includ
   const identifier: string = GetPlayerIdentifierByType(source, config.identifier_type);
   // @ts-ignore
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
-  const radius: number = args.radius;
-  const includeAdmin: boolean = args.includeAdmin === 1;
   // @ts-ignore
   const bucket: number = GetPlayerRoutingBucket(source);
+  const radius: number = args.radius;
+  const includeAdmin: boolean = args.includeAdmin === 1;
   const remove: Graffiti[] = [];
 
   for (const graffiti of Object.values(graffitiTags)) {
-    if (graffiti.dimension !== bucket) continue;
-
     const graffitiCoords: number[] = JSON.parse(graffiti.coords);
     const distance: number = getDistance(coords, graffitiCoords);
-    if (distance <= radius && (includeAdmin || graffiti.creator_id === identifier)) {
+    if (graffiti.dimension === bucket && distance <= radius && (includeAdmin || graffiti.creator_id === identifier)) {
       remove.push(graffiti);
     }
   }
@@ -268,12 +257,12 @@ async function addRestrictedZone(source: number, args: { radius: number }): Prom
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
   const coordsStr: string = JSON.stringify(coords);
   // @ts-ignore
-  const dimension: number = GetPlayerRoutingBucket(source);
+  const bucket: number = GetPlayerRoutingBucket(source);
   const radius: number = args.radius;
   const createdDate = new Date();
 
   try {
-    const rowsChanged: unknown = await db.saveRestrictedZone(identifier, coordsStr, dimension, radius);
+    const rowsChanged: unknown = await db.saveRestrictedZone(identifier, coordsStr, bucket, radius);
     if (!rowsChanged || (typeof rowsChanged === 'number' && rowsChanged === 0)) {
       console.error('Failed to insert Restricted Zone into the database');
       return sendChatMessage(source, '^#d73232ERROR ^#ffffffFailed to create Restricted Zone.');
@@ -286,7 +275,7 @@ async function addRestrictedZone(source: number, args: { radius: number }): Prom
       id: id,
       creator_id: identifier,
       coords: coordsStr,
-      dimension: dimension,
+      dimension: bucket,
       radius: radius,
       created_date: createdDate,
     };
@@ -325,15 +314,13 @@ async function removeRestrictedZone(source: number, args: { zoneId: number }): P
 async function nearbyRestrictedZones(source: number): Promise<void> {
   // @ts-ignore
   const coords: number[] = GetEntityCoords(GetPlayerPed(source));
-  // @ts-ignore
-  const bucket: number = GetPlayerRoutingBucket(source);
   const nearbyZones: RestrictedZones[] = [];
 
   for (const id in restrictedZones) {
     const zone: RestrictedZones = restrictedZones[id];
     const zoneCoords: number[] = JSON.parse(zone.coords);
     const distance: number = getDistance(coords, zoneCoords);
-    if (zone.dimension === bucket && distance < 50) {
+    if (distance < 50) {
       nearbyZones.push(zone);
     }
   }
@@ -413,6 +400,7 @@ addCommand(['removegraffiti', 'rg'], deleteGraffitiTag, {
       optional: false,
     },
   ],
+  restricted: restrictedGroup,
 });
 
 addCommand(['massremovegraffiti', 'removegraffitis'], massRemoveGraffiti, {
