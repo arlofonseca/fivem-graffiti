@@ -12,10 +12,11 @@ const spraycanDurability: Record<number, number> = {};
 const creationCooldown: Record<number, number> = {};
 
 const restrictedGroup: string = `group.${config.ace_group}`;
-
 const cooldown: number = 60 * 1000;
 
-async function createGraffitiTag(source: number, args: { text: string; font: number; size: number; hex: string }): Promise<void> {
+// -- Graffiti --
+
+async function createGraffiti(source: number, args: { text: string; font: number; size: number; hex: string }): Promise<void> {
   // @ts-ignore
   const identifier: string = GetPlayerIdentifierByType(source, config.identifier_type);
   const activeGraffiti: number = await db.countGraffiti(identifier);
@@ -66,11 +67,14 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
       return sendChatMessage(source, '^#d73232ERROR ^#ffffffInvalid hex code.');
     }
 
-    const zoneCoords: { x: number; y: number; z: number; radius: number }[] = await db.getRestrictedZoneCoords();
-    if (zoneCoords) {
-      const area: boolean = getArea({ x: coords[0], y: coords[1], z: coords[2] }, zoneCoords);
-      if (area) {
-        return sendChatMessage(source, '^#d73232You cannot place graffiti in this area!');
+    // @ts-ignore
+    if (!isAdmin(source, restrictedGroup)) {
+      const zoneCoords: { x: number; y: number; z: number; radius: number }[] = await db.getRestrictedZoneCoords();
+      if (zoneCoords) {
+        const area: boolean = getArea({ x: coords[0], y: coords[1], z: coords[2] }, zoneCoords);
+        if (area) {
+          return sendChatMessage(source, '^#d73232You cannot place graffiti in this area!');
+        }
       }
     }
 
@@ -102,7 +106,7 @@ async function createGraffitiTag(source: number, args: { text: string; font: num
     sendChatMessage(source, '^#5e81acYou have successfully created a Graffiti Tag. Use ^#ffffff/cleangraffiti ^#5e81acto remove it');
     creationCooldown[source] = time;
   } catch (error) {
-    console.error('createGraffitiTag:', error);
+    console.error('createGraffiti:', error);
     sendChatMessage(source, '^#d73232ERROR ^#ffffffAn error occurred while creating the Graffiti Tag.');
   }
 }
@@ -154,7 +158,7 @@ async function cleanNearestGraffiti(source: number): Promise<void> {
     }
   } catch (error) {
     console.error(`cleanNearestGraffiti:`, error);
-    sendChatMessage(source, '^#d73232ERROR ^#ffffffAn unexpected error occurred while trying to clean graffiti.');
+    sendChatMessage(source, '^#d73232ERROR ^#ffffffAn error occurred while trying to clean graffiti.');
   }
 }
 
@@ -184,11 +188,11 @@ async function nearbyGraffiti(source: number): Promise<void> {
     }
   } catch (error) {
     console.error(`nearbyGraffiti:`, error);
-    sendChatMessage(source, `^#d73232ERROR ^#ffffffAn unexpected error occurred while fetching nearby graffiti.`);
+    sendChatMessage(source, `^#d73232ERROR ^#ffffffAn error occurred while fetching nearby graffiti.`);
   }
 }
 
-async function deleteGraffitiTag(source: number, args: { graffitiId: number }): Promise<void> {
+async function deleteGraffiti(source: number, args: { graffitiId: number }): Promise<void> {
   const graffitiId: number = args.graffitiId;
 
   try {
@@ -209,8 +213,8 @@ async function deleteGraffitiTag(source: number, args: { graffitiId: number }): 
     emitNet('fivem-graffiti:client:deleteGraffitiTag', source, graffitiId);
     sendChatMessage(source, `^#5e81ac[ADMIN] ^#ffffffYou removed the graffiti (#${graffitiId}): ${graffiti.text}.`);
   } catch (error) {
-    console.error('deleteGraffitiTag:', error);
-    sendChatMessage(source, `^#d73232ERROR ^#ffffffAn unexpected error occurred while deleting graffiti.`);
+    console.error('deleteGraffiti:', error);
+    sendChatMessage(source, `^#d73232ERROR ^#ffffffAn error occurred while deleting graffiti.`);
   }
 }
 
@@ -251,11 +255,11 @@ async function massRemoveGraffiti(source: number, args: { radius: number; includ
     sendChatMessage(source, `^#5e81ac[ADMIN] ^#ffffffYou removed ${remove.length} graffiti(s) in the radius of ${radius} units!`);
   } catch (error) {
     console.error(`massRemoveGraffiti:`, error);
-    sendChatMessage(source, `^#d73232ERROR ^#ffffffAn unexpected error occurred while trying to mass remove graffiti.`);
+    sendChatMessage(source, `^#d73232ERROR ^#ffffffAn error occurred while trying to mass remove graffiti.`);
   }
 }
 
-async function teleportToGraffiti(source: number, args: { graffitiId: number }): Promise<void> {
+async function gotoGraffiti(source: number, args: { graffitiId: number }): Promise<void> {
   const graffitiId: number = args.graffitiId;
 
   try {
@@ -283,6 +287,8 @@ async function teleportToGraffiti(source: number, args: { graffitiId: number }):
     sendChatMessage(source, '^#d73232ERROR ^#ffffffAn error occurred while teleporting to graffiti.');
   }
 }
+
+// -- Zones --
 
 async function addRestrictedZone(source: number, args: { radius: number }): Promise<void> {
   // @ts-ignore
@@ -369,10 +375,9 @@ async function nearbyRestrictedZones(source: number): Promise<void> {
     for (const zone of nearbyZones) {
       sendChatMessage(source, `^#ffffffZone ID: ^#5e81ac${zone.id} ^#ffffff| Location: ^#5e81ac${zone.coords} ^#ffffff| Radius: ^#5e81ac${zone.radius} ^#ffffff| Dimension: ^#5e81ac${zone.dimension}`);
     }
-
   } catch (error) {
     console.error(`nearbyRestrictedZones:`, error);
-    sendChatMessage(source, '^#d73232ERROR ^#ffffffAn unexpected error occurred while fetching nearby restricted zones.');
+    sendChatMessage(source, '^#d73232ERROR ^#ffffffAn error occurred while fetching nearby restricted zones.');
   }
 }
 
@@ -397,7 +402,7 @@ on('onResourceStart', async (resourceName: string): Promise<void> => {
   if (!zones) return;
 });
 
-addCommand(['graffiti', 'grf'], createGraffitiTag, {
+addCommand(['graffiti', 'grf'], createGraffiti, {
   params: [
     {
       name: 'text',
@@ -432,7 +437,7 @@ addCommand(['nearbygraffitis', 'ng'], nearbyGraffiti, {
   restricted: restrictedGroup,
 });
 
-addCommand(['removegraffiti', 'rg'], deleteGraffitiTag, {
+addCommand(['removegraffiti', 'rg'], deleteGraffiti, {
   params: [
     {
       name: 'graffitiId',
@@ -485,7 +490,7 @@ addCommand(['nearbyrestrictedzones', 'nrz'], nearbyRestrictedZones, {
   restricted: restrictedGroup,
 });
 
-addCommand(['gotograffiti'], teleportToGraffiti, {
+addCommand(['gotograffiti'], gotoGraffiti, {
   params: [
     {
       name: 'graffitiId',
