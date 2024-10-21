@@ -259,38 +259,9 @@ async function massRemoveGraffiti(source: number, args: { radius: number; includ
   }
 }
 
-async function gotoGraffiti(source: number, args: { graffitiId: number }): Promise<void> {
-  const graffitiId: number = args.graffitiId;
-
-  try {
-    const graffiti = graffitiTags[graffitiId];
-    if (!graffiti) {
-      sendChatMessage(source, `^#d73232ERROR ^#ffffffGraffiti with ID ${graffitiId} couldn't be found.`);
-      return;
-    }
-
-    // @ts-ignore
-    const dimension: number = GetPlayerRoutingBucket(source);
-    const graffitiDimension: number = graffiti.dimension;
-
-    if (dimension !== graffitiDimension) {
-      // @ts-ignore
-      SetPlayerRoutingBucket(source, dimension);
-      // @ts-ignore
-      SetEntityCoords(GetPlayerPed(source), graffiti.coords, false, false, false, false);
-      sendChatMessage(source, `^#5e81acYou have successfully teleported to graffiti ID ${graffitiId} in dimension ${graffitiDimension}`);
-    } else {
-      sendChatMessage(source, `^#f39c12You are already in dimension ${graffitiDimension}.`);
-    }
-  } catch (error) {
-    console.error(`teleportToGraffiti:`, error);
-    sendChatMessage(source, '^#d73232ERROR ^#ffffffAn error occurred while teleporting to graffiti.');
-  }
-}
-
 // -- Zones --
 
-async function addRestrictedZone(source: number, args: { radius: number }): Promise<void> {
+async function createRestrictedZone(source: number, args: { radius: number }): Promise<void> {
   // @ts-ignore
   const identifier: string = GetPlayerIdentifierByType(source, config.identifier_type);
   // @ts-ignore
@@ -324,12 +295,12 @@ async function addRestrictedZone(source: number, args: { radius: number }): Prom
     restrictedZones[id] = data;
     sendChatMessage(source, `^#5e81ac[ADMIN] ^#ffffffSuccessfully created a restricted zone with a radius of ${radius} units!`);
   } catch (error) {
-    console.error('addRestrictedZone:', error);
+    console.error('createRestrictedZone:', error);
     sendChatMessage(source, `^#d73232ERROR ^#ffffffAn error occurred while creating the restricted zone.`);
   }
 }
 
-async function removeRestrictedZone(source: number, args: { zoneId: number }): Promise<void> {
+async function deleteRestrictedZone(source: number, args: { zoneId: number }): Promise<void> {
   const zoneId: number = args.zoneId;
 
   try {
@@ -346,7 +317,7 @@ async function removeRestrictedZone(source: number, args: { zoneId: number }): P
 
     sendChatMessage(source, `^#5e81ac[ADMIN] ^#ffffffYou removed restricted zone with ID: ${zoneId}.`);
   } catch (error) {
-    console.error('removeRestrictedZone:', error);
+    console.error('deleteRestrictedZone:', error);
     sendChatMessage(source, '^#d73232ERROR ^#ffffffAn error occurred while deleting the restricted zone.');
   }
 }
@@ -464,7 +435,7 @@ addCommand(['massremovegraffiti', 'removegraffitis'], massRemoveGraffiti, {
   restricted: restrictedGroup,
 });
 
-addCommand(['addrestrictedzone', 'arz'], addRestrictedZone, {
+addCommand(['addrestrictedzone', 'arz'], createRestrictedZone, {
   params: [
     {
       name: 'radius',
@@ -475,7 +446,7 @@ addCommand(['addrestrictedzone', 'arz'], addRestrictedZone, {
   restricted: restrictedGroup,
 });
 
-addCommand(['removerestrictedzone', 'rrz'], removeRestrictedZone, {
+addCommand(['removerestrictedzone', 'rrz'], deleteRestrictedZone, {
   params: [
     {
       name: 'zoneId',
@@ -490,7 +461,33 @@ addCommand(['nearbyrestrictedzones', 'nrz'], nearbyRestrictedZones, {
   restricted: restrictedGroup,
 });
 
-addCommand(['gotograffiti'], gotoGraffiti, {
+addCommand(['agotograffiti'], async (source: number, args: { graffitiId: number }): Promise<void> => {
+  // @ts-ignore
+  const dimension: number = GetPlayerRoutingBucket(source);
+  const graffitiId: number = args.graffitiId;
+
+  try {
+    const graffiti = graffitiTags[graffitiId];
+    if (!graffiti) {
+      sendChatMessage(source, `^#d73232ERROR ^#ffffffGraffiti with ID ${graffitiId} couldn't be found.`);
+      return;
+    }
+
+    const graffitiDimension: number = graffiti.dimension;
+    if (dimension !== graffitiDimension) {
+      // @ts-ignore
+      SetPlayerRoutingBucket(source, graffitiDimension);
+      // @ts-ignore
+      SetEntityCoords(GetPlayerPed(source), graffiti.coords, false, false, false, false);
+      sendChatMessage(source, `^#5e81acYou have successfully teleported to graffiti ID ${graffitiId} in dimension ${graffitiDimension}`);
+    } else {
+      sendChatMessage(source, `^#f39c12You are already in dimension ${graffitiDimension}.`);
+    }
+  } catch (error) {
+    console.error(`agotograffiti:`, error);
+    sendChatMessage(source, '^#d73232ERROR ^#ffffffAn error occurred while teleporting to graffiti.');
+  }
+}, {
   params: [
     {
       name: 'graffitiId',
@@ -498,5 +495,29 @@ addCommand(['gotograffiti'], gotoGraffiti, {
       optional: false,
     },
   ],
+  restricted: restrictedGroup,
+});
+
+// Unfortunately need this fallback to handle cases where users 
+// don't have a mechanism to reset their dimension properly lol
+addCommand(['aresetbucket'], async (source: number): Promise<void> => {
+  // @ts-ignore
+  const dimension: number = GetPlayerRoutingBucket(source);
+  const defaultDimension: number = 0;
+
+  try {
+    if (dimension === defaultDimension) {
+      sendChatMessage(source, `^#5e81ac[ADMIN] ^#ffffffYou are already in the default dimension ^#5e81ac${defaultDimension}^#ffffff.`);
+      return;
+    }
+
+    // @ts-ignore
+    SetPlayerRoutingBucket(source, defaultDimension);
+    sendChatMessage(source, `^#5e81ac[ADMIN] ^#ffffffYou have left dimension ^#5e81ac${dimension} ^#ffffffand entered dimension ^#5e81ac${defaultDimension}^#ffffff.`);
+  } catch (error) {
+    console.error(`aresetbucket:`, error);
+    sendChatMessage(source, '^#d73232ERROR ^#ffffffAn error occurred while trying to reset your dimension.');
+  }
+}, {
   restricted: restrictedGroup,
 });
