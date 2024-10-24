@@ -1,4 +1,4 @@
-export function hasItem(source: number, item: string) {
+export function hasItem(source: number, item: string): boolean {
   return exports.ox_inventory.GetItemCount(source, item) > 0;
 }
 
